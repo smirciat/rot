@@ -1,0 +1,61 @@
+<div flex layout="row">
+  <div flex layout="row" id="content">
+    <div flex layout="column">
+     <md-content flex class="space">
+        <table flex class="table table-striped table-responsive table-hover">
+          <thead>    
+            <tr>
+                <th>New Pilot</th>
+                <th>Medical Class</th>
+                <th>Medical Date</th>
+                <th>Date of Birth</th>
+                <th>Certificate Type</th>
+                <th>Certificate Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+                <td><input class="form-control" ng-model="main.newPilot.name" type="text"></td>
+                <td><input class="form-control" ng-model="main.newPilot.medicalClass" type="text"></td>
+                <td><input class="form-control" ng-model="main.newPilot.medicalDate" type="text"></td>
+                <td><input class="form-control" ng-model="main.newPilot.dateOfBirth" type="text"></td>
+                <td><input class="form-control" ng-model="main.newPilot.certType" type="text"></td>
+                <td><input class="form-control" ng-model="main.newPilot.certNumber" type="text"></td>
+                <td><a href="#" ng-click="main.cancel()"><button class="btn btn-warning">Cancel</button></a></td>
+                <td><button class="btn btn-primary" ng-click="main.save(main.newPilot)">Save</button></td>
+            </tr>
+        
+          </tbody>
+        </table>
+        </br>
+        <table flex class="table table-striped table-responsive table-hover">
+          <thead>    
+            <tr>
+                <th>Pilot</th>
+                <th>Medical Class</th>
+                <th>Medical Date</th>
+                <th>Date of Birth</th>
+                <th>Certificate Type</th>
+                <th>Certificate Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="pilot in main.pilots | orderBy : 'name'">
+                <td><input class="form-control" ng-model="pilot.name" type="text"></td>
+                <td><input class="form-control" ng-model="pilot.medicalClass" type="text"></td>
+                <td><input class="form-control" type="text" ng-model="pilot.medicalDate" ng-blur="main.medBlur(pilot._id)"></td>
+                <td><input class="form-control" type="text" ng-model="pilot.dateOfBirth" ng-blur="main.dobBlur(pilot._id)"></td>
+                <td><input class="form-control" ng-model="pilot.certType" type="text"></td>
+                <td><input class="form-control" ng-model="pilot.certNumber" type="text"></td>
+                <td><button class="btn btn-success" ng-click="main.update(pilot._id)">Update</button></td>
+                <td><button class="btn btn-danger" ng-click="main.delete(pilot._id)">Delete</button></td>
+                <td><button class="btn btn-primary" ng-click="main.rot(pilot._id)">Record of Training</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </md-content>
+     </div>
+    </div>
+</div>
+
+
