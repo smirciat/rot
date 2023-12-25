@@ -12,19 +12,19 @@ export default function(sequelize, DataTypes) {
     info: DataTypes.STRING,
     active: DataTypes.BOOLEAN,
     medicalClass: DataTypes.STRING,
-    medicalDate: DataTypes.DATE,
-    dateOfBirth: DataTypes.DATE,
+    medicalDate: DataTypes.STRING,
+    dateOfBirth: DataTypes.STRING,
     certNumber: DataTypes.STRING,
     certType: DataTypes.STRING,
-    base297: DataTypes.DATE,
-    base293: DataTypes.DATE,
-    baseIndoc: DataTypes.DATE,
-    baseHazmat: DataTypes.DATE,
-    base208: DataTypes.DATE,
-    base408: DataTypes.DATE,
-    base1900: DataTypes.DATE,
-    baseKingAir: DataTypes.DATE,
-    baseCasa: DataTypes.DATE
+    base297: DataTypes.STRING,
+    base293: DataTypes.STRING,
+    baseIndoc: DataTypes.STRING,
+    baseHazmat: DataTypes.STRING,
+    base208: DataTypes.STRING,
+    base408: DataTypes.STRING,
+    base1900: DataTypes.STRING,
+    baseKingAir: DataTypes.STRING,
+    baseCasa: DataTypes.STRING
     
   });
 }

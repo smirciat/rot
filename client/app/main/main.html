@@ -31,7 +31,11 @@
         <table flex class="table table-striped table-responsive table-hover">
           <thead>    
             <tr>
+                <th></th>
+                <th></th>
+                <th></th>
                 <th>Pilot</th>
+                <th>Base Months</th>
                 <th>Medical Class</th>
                 <th>Medical Date</th>
                 <th>Date of Birth</th>
@@ -40,8 +44,42 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="pilot in main.pilots | orderBy : 'name'">
+            <tr ng-repeat="pilot in main.pilots" ng-init="pilotIndex=$index">
+                <td><button class="btn btn-primary" ng-click="main.pdf(pilot._id,'ROT')">ROT</button></td>
+                <td><button class="btn btn-warning" ng-click="main.pdf(pilot._id,'FlightTest')">Flight Test</button></td>
+                <td><button class="btn btn-success" ng-click="main.pdf(pilot._id,'FlightTestINDOC')">INDOC</button></td>
                 <td><input class="form-control" ng-model="pilot.name" type="text"></td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                      Base Month
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <!--<li ng-repeat="form in main.formTypes" ng-class="{ 'invisible': form.id !== 4 }" role="separator" class="divider"></li>-->
+                        <li ng-repeat="form in main.formTypes" ng-attr-role="{'separator' : form.id == 4}" ng-init="formIndex=$index"
+                               ng-class="{'divider' : form.id == 4}" class="dropdown-submenu" onclick="event.stopPropagation();"
+                               id="{{'listItem'+ pilotIndex + formIndex}}">
+                          <input type="checkbox" id="{{'radioSelect' + form.id}}" ng-model="form.radio" ng-change="main.radioChange(pilotIndex,formIndex,form.radio)">
+                          <label for="{{'radioSelect' + form.id}}">{{form.label}}</label>
+                          <ul class="dropdown-menu">
+                            <li onclick="event.stopPropagation();">
+                              <ui-select ng-model="main.tempBases[pilotIndex][form.id].month" theme="bootstrap" close-on-select="true" on-select="main.onSelect($item,pilotIndex,formIndex)">
+                                <ui-select-match placeholder="Select a month in the list...">{{$select.selected}}</ui-select-match>
+                                <ui-select-choices repeat="item in main.months | filter: $select.search">
+                                  <div ng-bind-html="item | highlight: $select.search"></div>
+                                  <!--<small ng-bind-html="item.email | highlight: $select.search"></small>-->
+                                </ui-select-choices>
+                              </ui-select>
+                              <!--<input class="form-control" id="{{'pilot' + pilot._id + '_form' + form.id}}" 
+                                  ng-blur="main.updateBaseMonth(pilot, form)" ng-model="main.tempBases[form.id].month" type="text">
+                              <label for="{{'pilot' + pilot._id + '_form' + form.id}}">{{'Base Month for ' + form.label}}</label>-->
+                            </li>
+                          </ul>
+                        </li>
+                    </ul>
+                  </div>
+                </td>
                 <td><input class="form-control" ng-model="pilot.medicalClass" type="text"></td>
                 <td><input class="form-control" type="text" ng-model="pilot.medicalDate" ng-blur="main.medBlur(pilot._id)"></td>
                 <td><input class="form-control" type="text" ng-model="pilot.dateOfBirth" ng-blur="main.dobBlur(pilot._id)"></td>
@@ -49,7 +87,6 @@
                 <td><input class="form-control" ng-model="pilot.certNumber" type="text"></td>
                 <td><button class="btn btn-success" ng-click="main.update(pilot._id)">Update</button></td>
                 <td><button class="btn btn-danger" ng-click="main.delete(pilot._id)">Delete</button></td>
-                <td><button class="btn btn-primary" ng-click="main.rot(pilot._id)">Record of Training</button></td>
             </tr>
           </tbody>
         </table>
