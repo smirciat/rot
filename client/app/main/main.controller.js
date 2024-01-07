@@ -28,7 +28,20 @@
         this.fillPilots();
         //var interval=this.interval(()=>{console.log(this.tempBases)},10000);
       });
-      
+      // Call the function to set the zoom on page load
+      this.setZoom();
+      // Handle the window resize event
+      window.addEventListener('resize', this.setZoom);
+    }
+    
+    setZoom() {
+      if (window.matchMedia('(min-width: 480px) and (max-width: 1280px)').matches) {
+        //alert('zoom is 75%');
+        document.body.style.zoom = "75%";
+      } else {
+        //alert('zoom is 100%');
+        document.body.style.zoom = "100%";
+      }
     }
     
     radioChange(pilotIndex,formIndex,checkboxValue){
@@ -93,8 +106,8 @@
     }
     
     save(pilot) {
-      //pilot.medicalDate=this.tweakDate(pilot.medicalDate);
-      //pilot.dateOfBirth=this.tweakDate(pilot.dateOfBirth);
+      pilot.medicalDate=this.tweakDate(pilot.medicalDate);
+      pilot.dateOfBirth=this.tweakDate(pilot.dateOfBirth);
       pilot.medicalClass=pilot.medicalClass.toUpperCase();
       this.http.post('/api/pilots',pilot).then((res)=>{
         //res.data.medicalDate=new Date(res.data.medicalDate).toLocaleDateString();
@@ -106,7 +119,7 @@
       });
     }
     
-    //tweakDate(date) {
+    tweakDate(date) {
     //  var dateArray=new Date(date).toLocaleDateString().split('/');
     //  if (dateArray.length===3) {
     //    var day = dateArray[1];
@@ -115,17 +128,17 @@
     //    date=new Date(month + '/' + day + '/' + year);
     //    date.setTime(date.getTime()+12*60*60*1000);
     //  }
-    //  return date;
-    //}
+      return new Date(date).toLocaleDateString();
+    }
     
     dobBlur(id) {
       var index = this.pilots.map(e => e._id).indexOf(id);
-      //this.pilots[index].dateOfBirth=this.tweakDate(this.pilots[index].dateOfBirth);
+      this.pilots[index].dateOfBirth=this.tweakDate(this.pilots[index].dateOfBirth);
     }
     
     medBlur(id) {
       var index = this.pilots.map(e => e._id).indexOf(id);
-      //this.pilots[index].medicalDate=this.tweakDate(this.pilots[index].medicalDate);
+      this.pilots[index].medicalDate=this.tweakDate(this.pilots[index].medicalDate);
     }
     
     pdf(id,PDFFileName) {
@@ -144,10 +157,31 @@
         day = dateArray[1];
         year = dateArray[2];
 	    }
-	    this.suffices.forEach(suffix=>{
+	    this.suffices.forEach((suffix,suffixIndex)=>{
 	      m = this.months.indexOf(pilot[suffix]);
-	      if (m===11) exps.push('January ' + (year+1));
-	      else exps.push(pilot[suffix] + year);
+	      var expM;
+	      var nextYear=parseInt(year,10)+1;
+	      var yearAfter=parseInt(year,10)+2;
+	      if (suffix==="base297"){
+	        if (m>5) {
+	          expM=m-5;
+	          exps.push(this.months[expM] + ' ' + nextYear);
+	        }
+	        else {
+	          expM=m+7;
+	          exps.push(this.months[expM] + ' ' + year);
+	        }
+	      }
+	      else {
+  	      if (m===11) {
+  	        expM = 0;
+  	        exps.push(this.months[expM] + ' ' + nextYear);
+  	      }
+  	      else {
+  	        expM = m+1;
+	          exps.push(this.months[expM] + ' ' + nextYear);
+  	      }
+	      }
 	    });
       var fields={"Cert Type":[certType],
                   "Pilots Name":[pilot.name],
@@ -156,12 +190,52 @@
                   "Medical Class":[medClass],
                   "Medical EXP":[pilot.medicalDate],
                   "Date of Check":[dateObj],
-                  "Dropdown2":[pilot.baseIndoc.toUpperCase()],
-                  "BI Test Expiration":[exps[0]],
-                  "Dropdown4":[pilot.base293.toUpperCase()],
-                  "293 EXP":[exps[3]]
+                  "Check Airman":["Kyle LeFebvre"],
+                  "Check Airman Cert #":["K2 Cert#"],
+                  "Dropdown19":["RECURRENT"]
                   
       };
+      this.formTypes.forEach(form=>{
+        if (form.radio) {
+          var fieldName;
+          switch (form.label) {
+            case "Basic Indoc": 
+              fieldName = "Check Box1";
+              fields[fieldName]="X";
+              fieldName="BI TEST EXPIRATION";
+              fields.Dropdown2=[pilot.baseIndoc];//.toUpperCase()],
+              fields[fieldName]=[exps[0]];
+              break;
+            case "293(b) & 299": 
+              fieldName = "Check Box3";
+              fields[fieldName] ="X";
+              fieldName = "Check Box6";
+              fields[fieldName] ="X";
+              fieldName="Dropdown4";
+              fields[fieldName]=[pilot.base293];//.toUpperCase()],
+              fieldName="293 EXP";
+              fields[fieldName]=[exps[2]];
+              fields.Dropdown7=[pilot.base293];
+              fieldName="299 Enroute Check EXP";
+              fields[fieldName]=[exps[2]];
+              break;
+            case "297": 
+              fieldName = "Check Box4";
+              fields[fieldName]="X";
+              fieldName = "Check Box5";
+              fields[fieldName]="X";
+              fieldName="297 EXP";
+              fields[fieldName]=[exps[3]];
+              fields.Dropdown6=[pilot.base297];
+              fieldName="297(G) Autopilot EXP";
+              fields[fieldName]=[exps[3]];
+              fields.Dropdown5=[pilot.base297];
+              break;
+            default:
+              break;
+          }
+        }
+      });
       this.http({ url: "/pdf?filename=" + PDFFileName + ".pdf", 
           method: "GET", 
           headers: { 'Accept': 'application/pdf' }, 
