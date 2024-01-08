@@ -164,22 +164,22 @@
 	      var yearAfter=parseInt(year,10)+2;
 	      if (suffix==="base297"){
 	        if (m>5) {
-	          expM=m-5;
-	          exps.push(this.months[expM] + ' ' + nextYear);
+	          expM=m-6;
+	          exps.push(expM + '/' + nextYear);//this.months[expM] + ' ' + nextYear);
 	        }
 	        else {
-	          expM=m+7;
-	          exps.push(this.months[expM] + ' ' + year);
+	          expM=m+8;
+	          exps.push(expM + '/' + year);//this.months[expM] + ' ' + year);
 	        }
 	      }
 	      else {
   	      if (m===11) {
-  	        expM = 0;
-  	        exps.push(this.months[expM] + ' ' + nextYear);
+  	        expM = 1;
+  	        exps.push(expM + '/' + nextYear);//this.months[expM] + ' ' + nextYear);
   	      }
   	      else {
-  	        expM = m+1;
-	          exps.push(this.months[expM] + ' ' + nextYear);
+  	        expM = m+2;
+	          exps.push(expM + '/' + nextYear);//this.months[expM] + ' ' + nextYear);
   	      }
 	      }
 	    });
@@ -192,8 +192,9 @@
                   "Date of Check":[dateObj],
                   "Check Airman":["Kyle LeFebvre"],
                   "Check Airman Cert #":["K2 Cert#"],
-                  "Dropdown19":["RECURRENT"]
-                  
+                  "Dropdown19":["RECURRENT"],
+                  "Group4":["Choice4"],
+                  "Choice4":"X"                 
       };
       this.formTypes.forEach(form=>{
         if (form.radio) {
@@ -203,39 +204,49 @@
               fieldName = "Check Box1";
               fields[fieldName]="X";
               fieldName="BI TEST EXPIRATION";
-              fields.Dropdown2=[pilot.baseIndoc];//.toUpperCase()],
-              fields[fieldName]=[exps[0]];
+              if (pilot.baseIndoc) fields.Dropdown2=[pilot.baseIndoc.toUpperCase()];
+              if (exps[0]) fields[fieldName]=[exps[0].toUpperCase()];
+              fieldName="BaseMonth";
+              if (pilot.baseIndoc&&typeof pilot.baseIndoc === "string") fields[fieldName]=[pilot.baseIndoc.toUpperCase()];
               break;
             case "293(b) & 299": 
               fieldName = "Check Box3";
               fields[fieldName] ="X";
               fieldName = "Check Box6";
               fields[fieldName] ="X";
-              fieldName="Dropdown4";
-              fields[fieldName]=[pilot.base293];//.toUpperCase()],
+              if (pilot.base293) fields.Dropdown4=[pilot.base293.toUpperCase()];
               fieldName="293 EXP";
-              fields[fieldName]=[exps[2]];
-              fields.Dropdown7=[pilot.base293];
+              if (exps[2]) fields[fieldName]=[exps[2].toUpperCase()];
+              if (pilot.base293) fields.Dropdown7=[pilot.base293.toUpperCase()];
               fieldName="299 Enroute Check EXP";
-              fields[fieldName]=[exps[2]];
+              if (exps[2]) fields[fieldName]=[exps[2].toUpperCase()];
+              fieldName="BaseMonth";
+              if (pilot.base293&&typeof pilot.base293 === "string") fields[fieldName]=[pilot.base293.toUpperCase()];
               break;
             case "297": 
               fieldName = "Check Box4";
               fields[fieldName]="X";
               fieldName = "Check Box5";
-              fields[fieldName]="X";
+              //fields[fieldName]="X";
               fieldName="297 EXP";
-              fields[fieldName]=[exps[3]];
-              fields.Dropdown6=[pilot.base297];
+              if (exps[3]) fields[fieldName]=[exps[3].toUpperCase()];
+              //if (pilot.base297) fields.Dropdown6=[pilot.base297.toUpperCase()];
               fieldName="297(G) Autopilot EXP";
-              fields[fieldName]=[exps[3]];
-              fields.Dropdown5=[pilot.base297];
+              //if (exps[3]) fields[fieldName]=[exps[3].toUpperCase()];
+              if (pilot.base297) fields.Dropdown5=[pilot.base297.toUpperCase()];
+              fieldName="BaseMonth";
+              if (pilot.base297&&typeof pilot.base297 === "string") fields[fieldName]=[pilot.base297.toUpperCase()];
+              break;
+            case "HAZMAT":
+              fieldName="BaseMonth";
+              if (pilot.baseHazmat&&typeof pilot.baseHazmat === "string") fields[fieldName]=[pilot.baseHazmat.toUpperCase()];
               break;
             default:
               break;
           }
         }
       });
+      console.log(fields);
       this.http({ url: "/pdf?filename=" + PDFFileName + ".pdf", 
           method: "GET", 
           headers: { 'Accept': 'application/pdf' }, 
