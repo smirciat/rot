@@ -21,8 +21,8 @@
                 <td><input class="form-control" ng-model="main.newPilot.dateOfBirth" type="text"></td>
                 <td><input class="form-control" ng-model="main.newPilot.certType" type="text"></td>
                 <td><input class="form-control" ng-model="main.newPilot.certNumber" type="text"></td>
-                <td><a href="#" ng-click="main.cancel()"><button class="btn btn-warning">Cancel</button></a></td>
-                <td><button class="btn btn-primary" ng-click="main.save(main.newPilot)">Save</button></td>
+                <td><a href="#" ng-click="main.cancel()"><button class="btn btn-warning" ng-class="main.isItDisabled()">Cancel</button></a></td>
+                <td><button class="btn btn-primary" ng-class="main.isItDisabled()" ng-click="main.save(main.newPilot)">Save</button></td>
             </tr>
         
           </tbody>
@@ -45,9 +45,14 @@
           </thead>
           <tbody>
             <tr ng-repeat="pilot in main.pilots" ng-init="pilotIndex=$index">
-                <td><button class="btn btn-primary" ng-click="main.pdf(pilot._id,'ROT')">ROT</button></td>
-                <td><button class="btn btn-warning" ng-click="main.pdf(pilot._id,'FlightTest')">Flight Test</button></td>
-                <td><button class="btn btn-success" ng-click="main.pdf(pilot._id,'FlightTestINDOC')">INDOC</button></td>
+                <td>
+                  <button class="btn btn-primary" ng-class="main.isItDisabled()" ng-click="main.pdf(pilot._id,'ROT')">
+                    <span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                    ROT
+                  </button>
+                </td>
+                <td><button class="btn btn-warning" ng-class="main.isItDisabled()" ng-click="main.pdf(pilot._id,'FlightTest')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Flight Test</button></td>
+                <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.pdf(pilot._id,'FlightTestINDOC')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>INDOC</button></td>
                 <td><input class="form-control" ng-model="pilot.name" type="text"></td>
                 <td>
                   <div class="dropdown">
@@ -85,8 +90,8 @@
                 <td><input class="form-control" type="text" ng-model="pilot.dateOfBirth" ng-blur="main.dobBlur(pilot._id)"></td>
                 <td><input class="form-control" ng-model="pilot.certType" type="text"></td>
                 <td><input class="form-control" ng-model="pilot.certNumber" type="text"></td>
-                <td><button class="btn btn-success" ng-click="main.update(pilot._id)">Update</button></td>
-                <td><button class="btn btn-danger" ng-click="main.delete(pilot._id)">Delete</button></td>
+                <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.update(pilot._id)">Update</button></td>
+                <td><button class="btn btn-danger" ng-class="main.isItDisabled()" ng-click="main.delete(pilot._id)">Delete</button></td>
             </tr>
           </tbody>
         </table>

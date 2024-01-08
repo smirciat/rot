@@ -4,9 +4,10 @@
 
   class MainController {
 
-    constructor($http,$interval) {
+    constructor($http,$interval,$timeout) {
       this.http = $http;
       this.interval=$interval;
+      this.timeout=$timeout;
       this.newPilot={};
       this.pilots=[];
       this.months=[];
@@ -22,6 +23,7 @@
     }
 
     $onInit() {
+      this.loading=false;
       this.http.get('/api/pilots').then((response)=>{
         this.pilots=response.data;
         this.tempBases = [];
@@ -81,16 +83,26 @@
     }
     
     delete(id) {
+      this.loading=true;
       var index = this.pilots.map(e => e._id).indexOf(id);
-      var userResponse=confirm("Do you really want to delete " + this.pilots[index].name + " ?");
-      if (userResponse) {  
-        this.http.delete('/api/pilots/'+id).then(res=>{
-          this.pilots.splice(index,1);
-        });
-      }
+      this.timeout(()=>{
+        var userResponse=confirm("Do you really want to delete " + this.pilots[index].name + " ?");
+        if (userResponse) {  
+          this.http.delete('/api/pilots/'+id).then(res=>{
+            this.loading=false;
+            this.pilots.splice(index,1);
+          }).catch(err=>{
+            console.log(err);
+            this.loading=false;
+          });
+        }
+        else this.loading=false;
+      },0);  
+        
     }
     
     update(id) {
+      this.loading=true;
       var index = this.pilots.map(e => e._id).indexOf(id);
       console.log(index)
       this.tempBases[index].forEach((base,i)=>{
@@ -98,14 +110,18 @@
           this.pilots[index][base.suffix]=base.month;
         }
       });
-      console.log(this.pilots)
       this.http.patch('/api/pilots/'+id,this.pilots[index]).then(res=>{
         //this.pilots.splice(index,1);
         //this.pilots.push(res.data);
+        this.loading=false;
+      }).catch(err=>{
+        console.log(err);
+        this.loading=false;
       });
     }
     
     save(pilot) {
+      this.loading=true;
       pilot.medicalDate=this.tweakDate(pilot.medicalDate);
       pilot.dateOfBirth=this.tweakDate(pilot.dateOfBirth);
       pilot.medicalClass=pilot.medicalClass.toUpperCase();
@@ -116,6 +132,10 @@
         this.newPilot={};
         this.tempBases = [];
         this.fillPilots();
+        this.loading=false;
+      }).catch(err=>{
+        console.log(err);
+        this.loading=false;
       });
     }
     
@@ -141,7 +161,19 @@
       this.pilots[index].medicalDate=this.tweakDate(this.pilots[index].medicalDate);
     }
     
+    isItDisabled(){
+      if (this.loading) return "disabled";
+      return;
+    }
+    
+    isItLoading(){
+      return this.loading;
+    }
+    
     pdf(id,PDFFileName) {
+      //spin buttons
+      this.loading=true;
+      //
       var index = this.pilots.map(e => e._id).indexOf(id);
       var pilot = this.pilots[index];
       var certType = "ATP/";
@@ -246,7 +278,6 @@
           }
         }
       });
-      console.log(fields);
       this.http({ url: "/pdf?filename=" + PDFFileName + ".pdf", 
           method: "GET", 
           headers: { 'Accept': 'application/pdf' }, 
@@ -259,6 +290,12 @@
   		    
   		    var filename=PDFFileName + "_" + pilot.name + '_' + year + '_' + month + '_' + day + '.pdf';
   	      saveAs(blob, filename);
+  	      //unspin buttons
+  	      this.loading=false;
+  	      //
+        }).catch(err=>{
+          console.log(err);
+          this.loading=false;
         });
     }
 
