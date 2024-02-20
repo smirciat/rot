@@ -40,8 +40,13 @@ export default function(app) {
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
   app.use(compression());
-  app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(bodyParser.json());
+  app.use(express.json({extended: false, limit: '50mb'}));
+  app.use(express.urlencoded({extended: false, limit: '50mb'}));
+  //app.use(bodyParser.urlencoded({ extended: false }));
+  //app.use(bodyParser.json());
+  //app.use(bodyParser.raw({ inflate: true, limit: '100mb', type: '*/*' }));
+  //app.use(bodyParser.json({limit: '50mb'}));
+  //app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
   app.use(methodOverride());
   app.use(cookieParser());
   app.use(passport.initialize());
@@ -76,13 +81,13 @@ export default function(app) {
   }
 
   if ('development' === env) {
-    app.use(require('connect-livereload')({
-      ignore: [
-        /^\/api\/(.*)/,
-        /\.js(\?.*)?$/, /\.css(\?.*)?$/, /\.svg(\?.*)?$/, /\.ico(\?.*)?$/, /\.woff(\?.*)?$/,
-        /\.png(\?.*)?$/, /\.jpg(\?.*)?$/, /\.jpeg(\?.*)?$/, /\.gif(\?.*)?$/, /\.pdf(\?.*)?$/
-      ]
-    }));
+    //app.use(require('connect-livereload')({
+      //ignore: [
+        ///^\/api\/(.*)/,
+        ///\.js(\?.*)?$/, /\.css(\?.*)?$/, /\.svg(\?.*)?$/, /\.ico(\?.*)?$/, /\.woff(\?.*)?$/,
+        ///\.png(\?.*)?$/, /\.jpg(\?.*)?$/, /\.jpeg(\?.*)?$/, /\.gif(\?.*)?$/, /\.pdf(\?.*)?$/
+      //]
+    //}));
   }
 
   if ('development' === env || 'test' === env) {

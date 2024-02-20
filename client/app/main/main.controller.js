@@ -23,6 +23,17 @@
     }
 
     $onInit() {
+      
+      //this.http({ url: "/pdf?filename=2024_01_06_14_01_timber_Albany,_OR,_United_States.tcx", 
+          //method: "GET", 
+          //responseType: 'text' })
+        //.then(response=> {
+          //console.log(response.data);
+        //}).catch(err=>{
+          //console.log(err);
+       // });
+      
+      
       this.loading=false;
       this.http.get('/api/pilots').then((response)=>{
         this.pilots=response.data;
@@ -67,7 +78,7 @@
           this.tempBases[pilotIndex].push({field:label.label, month: p[label.suffix], suffix:label.suffix});
         });
       }); 
-      console.log(this.tempBases)
+      //console.log(this.tempBases)
     }
     
     onSelect(item,pilotIndex,formIndex){
@@ -104,7 +115,7 @@
     update(id) {
       this.loading=true;
       var index = this.pilots.map(e => e._id).indexOf(id);
-      console.log(index)
+      //console.log(index)
       this.tempBases[index].forEach((base,i)=>{
         if (i!==5) {
           this.pilots[index][base.suffix]=base.month;
@@ -223,7 +234,7 @@
                   "Medical EXP":[pilot.medicalDate],
                   "Date of Check":[dateObj],
                   "Check Airman":["Kyle LeFebvre"],
-                  "Check Airman Cert #":["K2 Cert#"],
+                  "Check Airman Cert #":["3120274"],
                   "Dropdown19":["RECURRENT"],
                   "Group4":["Choice4"],
                   "Choice4":"X"                 
@@ -280,7 +291,7 @@
       });
       this.http({ url: "/pdf?filename=" + PDFFileName + ".pdf", 
           method: "GET", 
-          headers: { 'Accept': 'application/pdf' }, 
+          headers: { 'Accept': 'application/pdf' }, //'text/plain'
           responseType: 'arraybuffer' })
         .then(response=> {
           var filled_pdf; // Uint8Array

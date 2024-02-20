@@ -1,0 +1,18 @@
+  <div style="margin:30px;">
+    <h1>Generate CSV File From iPad Backup</h1>
+    <h3>Input Starting Date for CSV File Here</h3>
+    <div style="display:inline-block; min-height:290px;">
+      <uib-datepicker ng-model="xmlCtrl.startDate" show-weeks="true" class="well well-sm"></uib-datepicker>
+    </div>
+    <h3>Input FlightIndex.plist Here</h3>
+    <p>On the iPad, make a local backup of your flights.  Find the zip file in your files app, and extract it.  Then find your FlightIndex.plist file (near the bottom) and input it here.</p>
+    <input class="form-control" type="file" id="file" name="file" ng-model="xmlCtrl.file" ng-change="xmlCtrl.inputChange()"/>
+      <br>
+    <button class="btn btn-success" ng-click="xmlCtrl.add()" ng-if="xmlCtrl.isThereAFile()" ng-disabled="xmlCtrl.isItLoading()">
+      <span ng-if="xmlCtrl.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+      Add Plist File and Go</button>
+    <br>
+    <br>
+    <a class="btn btn-primary" download="result.csv" ng-href="{{ xmlCtrl.url }}" ng-click="xmlCtrl.download()" ng-if="xmlCtrl.isItComplete()">Download CSV File</a>
+    <button class="btn btn-success" ng-if="xmlCtrl.isItFullyComplete()">Success! Check Download Folder!</button>
+  </div>

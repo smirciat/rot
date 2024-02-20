@@ -94,14 +94,14 @@ module.exports = function(grunt) {
           '<%= yeoman.client %>/assets/images/{,*//*}*.{png,jpg,jpeg,gif,webp,svg}'
         ],
         options: {
-          livereload: 8081
+          livereload: false
         }
       },
       express: {
         files: ['<%= yeoman.server %>/**/*.{js,json}'],
         tasks: ['express:dev', 'wait'],
         options: {
-          livereload: 8081,
+          livereload: false,
           spawn: false //Without this option specified express won't be reloaded
         }
       },
@@ -618,7 +618,7 @@ module.exports = function(grunt) {
     setTimeout(function() {
       grunt.log.writeln('Done waiting!');
       done();
-    }, 1500);
+    }, 15);//00);
   });
 
   grunt.registerTask('express-keepalive', 'Keep grunt running', function() {
