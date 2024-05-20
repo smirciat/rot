@@ -9,6 +9,7 @@ import fs from 'fs';
 import sqldb from './sqldb';
 import config from './config/environment';
 import https from 'https';
+import cors from 'cors';
 var privateKey  = fs.readFileSync('/etc/letsencrypt/live/bering.ddns.net/privkey.pem', 'utf8');
 var certificate = fs.readFileSync('/etc/letsencrypt/live/bering.ddns.net/fullchain.pem', 'utf8');
 var credentials = {key: privateKey, cert: certificate};
@@ -17,9 +18,14 @@ var credentials = {key: privateKey, cert: certificate};
 if (config.seedDB) { require('./config/seed'); }
 
 // Setup server
-var app = express();
+let app = express();
+let corsOptions = { 
+    origin: [ 'https://bering.ddns.net:59090', 'https://bering.ddns.net:59091' ] 
+}; 
+app.use(cors(corsOptions));
+//app.options(corsOptions, cors());
 //var server = http.createServer(app);
-var server = https.createServer(credentials,app);
+let server = https.createServer(credentials,app);
 require('./config/express').default(app);
 require('./routes').default(app);
 

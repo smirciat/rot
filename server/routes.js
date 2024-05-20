@@ -11,7 +11,8 @@ import * as auth from './auth/auth.service';
 export default function(app) {
   // Insert routes below
   app.use('/api/raws', require('./api/raw'));
-  app.get('/pdf', auth.hasRole('admin'),function(req, res){
+  //app.get('/pdf', auth.hasRole('admin'),function(req, res){
+  app.get('/pdf', function(req, res){
     if (req.query) res.sendFile("./pdfs/" + req.query.filename, {root: __dirname});
     else res.status(500);
   });

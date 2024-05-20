@@ -1,97 +1,131 @@
-<div flex layout="row">
+<div ng-hide="main.loggedIn()" style="margin-left:50px; margin-right:50px">
+  <h3>Please Login to Use This Application</h5>
+  <h5>Both Firebase and Navbar Logins Please!</h3>
+  <br><br>
+  <input class="form-control" type="text" id="username1" name="username1" ng-model="main.username"/>
+  <label for="username1">Firebase Username</label>
+  <br><br>
+  <input class="form-control" type="password" id="password1" name="password1" ng-model="main.password"/>
+  <label for="password1">Firebase Password</label>
+  <br><br>
+  <button class="btn btn-success" ng-click="main.signInFirebase()"><span ng-if="main.clicked" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Click to Login Firebase</button>
+  <br><br>
+  <button class="btn btn-danger" ng-click="main.sendPasswordReset()"><span ng-if="main.resetClicked" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Reset Firebase Password</button>
+</div>
+<div ng-if="main.loggedIn()" flex layout="row">
   <div flex layout="row" id="content">
     <div flex layout="column">
      <md-content flex class="space">
-        <table flex class="table table-striped table-responsive table-hover">
-          <thead>    
-            <tr>
-                <th>New Pilot</th>
-                <th>Medical Class</th>
-                <th>Medical Date</th>
-                <th>Date of Birth</th>
-                <th>Certificate Type</th>
-                <th>Certificate Number</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-                <td><input class="form-control" ng-model="main.newPilot.name" type="text"></td>
-                <td><input class="form-control" ng-model="main.newPilot.medicalClass" type="text"></td>
-                <td><input class="form-control" ng-model="main.newPilot.medicalDate" type="text"></td>
-                <td><input class="form-control" ng-model="main.newPilot.dateOfBirth" type="text"></td>
-                <td><input class="form-control" ng-model="main.newPilot.certType" type="text"></td>
-                <td><input class="form-control" ng-model="main.newPilot.certNumber" type="text"></td>
-                <td><a href="#" ng-click="main.cancel()"><button class="btn btn-warning" ng-class="main.isItDisabled()">Cancel</button></a></td>
-                <td><button class="btn btn-primary" ng-class="main.isItDisabled()" ng-click="main.save(main.newPilot)">Save</button></td>
-            </tr>
-        
-          </tbody>
-        </table>
-        </br>
-        <table flex class="table table-striped table-responsive table-hover">
+        <table flex class="table table-responsive table-hover">
           <thead>    
             <tr>
                 <th></th>
                 <th></th>
                 <th></th>
+                <th>Emp#</th>
                 <th>Pilot</th>
-                <th>Base Months</th>
-                <th>Medical Class</th>
-                <th>Medical Date</th>
-                <th>Date of Birth</th>
-                <th>Certificate Type</th>
-                <th>Certificate Number</th>
+                <th>Date</th>
+                <th>Initial/Recurrent</th>
+                <th>Type</th>
+                <th>Base Month</th>
+                <th>New Base</th>
+                <th>Instructor</th>
+                <th>CheckAriman</th>
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="pilot in main.pilots" ng-init="pilotIndex=$index">
-                <td>
-                  <button class="btn btn-primary" ng-class="main.isItDisabled()" ng-click="main.pdf(pilot._id,'ROT')">
-                    <span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
-                    ROT
-                  </button>
-                </td>
-                <td><button class="btn btn-warning" ng-class="main.isItDisabled()" ng-click="main.pdf(pilot._id,'FlightTest')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Flight Test</button></td>
-                <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.pdf(pilot._id,'FlightTestINDOC')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>INDOC</button></td>
-                <td><input class="form-control" ng-model="pilot.name" type="text"></td>
-                <td>
+            <tr ng-repeat="record in main.records track by $index" ng-init="recordIndex=$index" ng-class="main.newRecordClass(record)">
+                <!--<td>
                   <div class="dropdown">
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                       Base Month
                       <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                        <!--<li ng-repeat="form in main.formTypes" ng-class="{ 'invisible': form.id !== 4 }" role="separator" class="divider"></li>-->
                         <li ng-repeat="form in main.formTypes" ng-attr-role="{'separator' : form.id == 4}" ng-init="formIndex=$index"
                                ng-class="{'divider' : form.id == 4}" class="dropdown-submenu" onclick="event.stopPropagation();"
-                               id="{{'listItem'+ pilotIndex + formIndex}}">
-                          <input type="checkbox" id="{{'radioSelect' + form.id}}" ng-model="form.radio" ng-change="main.radioChange(pilotIndex,formIndex,form.radio)">
+                               id="{{'listItem'+ recordIndex + formIndex}}">
+                          <input type="checkbox" id="{{'radioSelect' + form.id}}" ng-model="form.radio" ng-change="main.radioChange(recordIndex,formIndex,form.radio)">
                           <label for="{{'radioSelect' + form.id}}">{{form.label}}</label>
                           <ul class="dropdown-menu">
                             <li onclick="event.stopPropagation();">
-                              <ui-select ng-model="main.tempBases[pilotIndex][form.id].month" theme="bootstrap" close-on-select="true" on-select="main.onSelect($item,pilotIndex,formIndex)">
+                              <ui-select ng-model="main.tempBases[recordIndex][form.id].month" theme="bootstrap" close-on-select="true" on-select="main.onSelect($item,recordIndex,formIndex)">
                                 <ui-select-match placeholder="Select a month in the list...">{{$select.selected}}</ui-select-match>
                                 <ui-select-choices repeat="item in main.months | filter: $select.search">
                                   <div ng-bind-html="item | highlight: $select.search"></div>
-                                  <!--<small ng-bind-html="item.email | highlight: $select.search"></small>-->
                                 </ui-select-choices>
                               </ui-select>
-                              <!--<input class="form-control" id="{{'pilot' + pilot._id + '_form' + form.id}}" 
-                                  ng-blur="main.updateBaseMonth(pilot, form)" ng-model="main.tempBases[form.id].month" type="text">
-                              <label for="{{'pilot' + pilot._id + '_form' + form.id}}">{{'Base Month for ' + form.label}}</label>-->
                             </li>
                           </ul>
                         </li>
                     </ul>
                   </div>
+                </td>-->
+                <!--<td><input class="form-control" ng-model="record.medicalClass" type="text"></td>
+                <td><input class="form-control" type="text" ng-model="record.medicalDate" ng-blur="main.medBlur(record._id)"></td>
+                <td><input class="form-control" type="text" ng-model="record.dateOfBirth" ng-blur="main.dobBlur(record._id)"></td>
+                <td><input class="form-control" ng-model="record.certType" type="text"></td>
+                <td><input class="form-control" ng-model="record.cert" type="text"></td>-->
+                <td>
+                  <button class="btn btn-primary" ng-class="main.isItDisabled()" ng-click="main.pdf(record,'ROT')">
+                    <span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                    ROT
+                  </button>
                 </td>
-                <td><input class="form-control" ng-model="pilot.medicalClass" type="text"></td>
-                <td><input class="form-control" type="text" ng-model="pilot.medicalDate" ng-blur="main.medBlur(pilot._id)"></td>
-                <td><input class="form-control" type="text" ng-model="pilot.dateOfBirth" ng-blur="main.dobBlur(pilot._id)"></td>
-                <td><input class="form-control" ng-model="pilot.certType" type="text"></td>
-                <td><input class="form-control" ng-model="pilot.certNumber" type="text"></td>
-                <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.update(pilot._id)">Update</button></td>
-                <td><button class="btn btn-danger" ng-class="main.isItDisabled()" ng-click="main.delete(pilot._id)">Delete</button></td>
+                <td><button class="btn btn-warning" ng-class="main.isItDisabled()" ng-click="main.pdf(record,'FlightTest')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Flight Test</button></td>
+                <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.pdf(record,'FlightTestINDOC')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>INDOC</button></td>
+                <td><input class="form-control" ng-model="record.pilotNumber" type="text" ng-blur="main.fillPilotData(record,recordIndex)"><!-- style="width:70px;">--></td>
+                <td><input class="form-control" ng-model="record.name" type="text" ng-click="main.showPilotModal(record.pilotNumber,record)"></td>
+                <td><input class="form-control" ng-model="record.date" type="text" ng-blur="main.checkDate(record)"></td>
+                <!--<td><ui-select ng-model="record.trainingTypeCombo" theme="bootstrap" ng-disabled="disabled" ng-change="main.trainingType(record)">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="combo in main.trainingTypes" >
+                    <div ng-bind-html="combo | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>-->
+                <td><ui-select ng-model="record.trainingType" theme="bootstrap" ng-disabled="disabled"><!--ng-change="main.trainingType(record)">-->
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="combo in main.trainingTypes" >
+                    <div ng-bind-html="combo | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-click="main.radioModal(record)">
+                  <p tooltip-placement="auto" uib-tooltip="Click to Edit">{{main.displayArray(record)}}</p>
+                </td>
+                  <!--<ui-select ng-model="record.type" theme="bootstrap" ng-disabled="disabled" ng-change="main.select('type',record)">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="type in main.types" >
+                    <div ng-bind-html="type | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>-->
+                <td><ui-select ng-model="record.baseMonth" theme="bootstrap" ng-disabled="disabled">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="month in main.months" >
+                    <div ng-bind-html="month | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td><ui-select ng-model="record.newBaseMonth" theme="bootstrap" ng-disabled="disabled">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="choice in ['true','false']" >
+                    <div ng-bind-html="choice | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-hide="record.newinstructor"><ui-select ng-model="record.instructor" theme="bootstrap" ng-disabled="disabled" ng-change="main.fillCert('instructor',record)">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="instructor in main.instructors" >
+                    <div ng-bind-html="instructor | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-show="record.newinstructor"><input class="form-control" ng-model="record.instructor" type="text"></td>
+                <td ng-hide="record.newcheckAirman"><ui-select ng-model="record.checkAirman" theme="bootstrap" ng-disabled="disabled" ng-change="main.fillCert('checkAirman',record)">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="instructor in main.instructors" >
+                    <div ng-bind-html="instructor | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-show="record.newcheckAirman"><input class="form-control" ng-model="record.checkAirman" type="text"></td>
+                <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.update(record)">Save</button></td>
+                <td><button class="btn btn-danger" ng-class="main.isItDisabled()" ng-click="main.delete(record)">Delete</button></td>
             </tr>
           </tbody>
         </table>

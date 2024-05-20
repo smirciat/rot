@@ -1,0 +1,58 @@
+@media print {
+  /* All your print styles go here */
+  .navbar {
+    display: none !important;
+  }
+  .row {
+      display: block !important;
+  }
+  .myGridOme {
+      display: block !important;
+  }
+  .myGridOtz {
+      display: block !important;
+  }
+}
+
+.yellow {
+    background-color:yellow !important;
+    font-weight:bold;
+}
+
+.green {
+    background-color:lightgreen !important;
+    font-weight:bold;
+}
+
+.red {
+    background-color: red !important;
+    font-weight:bold;
+}
+
+.black {
+    background-color: black !important;
+    color:white;
+    font-weight:bold;
+}
+
+.myGridOme {
+    height:85vh;
+}
+.myGridOtz {
+    height:40vh;
+}
+.center {
+    text-align:center;
+}
+.bering{
+    font-family: "Times New Roman", Times, serif;
+    text-decoration:underline;
+    font-style:italic;
+    
+}
+.fourteen{
+    font-size:1.75em;
+}
+.ten{
+    font-size:1.25em;
+}

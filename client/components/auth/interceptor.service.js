@@ -17,10 +17,11 @@
       // Intercept 401s and redirect you to login
       responseError(response) {
         if (response.status === 401) {
+          alert('Hit refresh or Login, your login token may be expired');
           (state || (state = $injector.get('$state')))
-          .go('login');
+          //.go('login');
           // remove any stale tokens
-          $cookies.remove('token');
+          //$cookies.remove('token');
         }
         return $q.reject(response);
       }

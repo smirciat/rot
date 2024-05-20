@@ -5,6 +5,12 @@ class NavbarController {
   menu = [{
     'title': 'Home',
     'state': 'main'
+  },{
+    'title': 'Nome',
+    'state': 'ome'
+  },{
+    'title': 'Kotz',
+    'state': 'otz'
   }];
 
   isCollapsed = true;
@@ -14,6 +20,10 @@ class NavbarController {
     this.isLoggedIn = Auth.isLoggedIn;
     this.isAdmin = Auth.isAdmin;
     this.getCurrentUser = Auth.getCurrentUser;
+  }
+  
+  $onInit(){
+    
   }
 
 }

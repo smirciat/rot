@@ -92,3 +92,12 @@
     from { transform: scale(1) rotate(0deg);}
     to { transform: scale(1) rotate(360deg);}
 }
+
+.darkBackground {
+  background-color:#90EE90;
+}
+
+.ui-select-bootstrap .ui-select-choices{
+  max-height:500px!important;
+  top:0px;
+}
