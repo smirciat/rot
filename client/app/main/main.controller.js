@@ -264,6 +264,10 @@
       });
     }
     
+    keypress(event){
+      if(event.which === 13) this.signInFirebase();
+    }
+    
     async getFilteredData(collection,filter){
       let structuredQuery={
         structuredQuery:{
@@ -323,8 +327,19 @@
       let append='/';
       if (document._id) append+=document._id;
       else append+=Date.now();
-      return this.http.patch(this.url+collection+append,this.toBody(document),this.config).then(response=>{//omit /id to create new document, http.delete to delete
-        //console.log(response.data);
+      let body=this.toBody(document);
+      let maskQuery=[];//'?updateMask={fieldPaths:[';
+      for (let key in body.fields) {
+        maskQuery.push(key);//+=key+',';
+      }
+      //maskQuery=maskQuery.slice(0,-1);
+     // maskQuery+=']}';
+      //body.updateMask=maskQuery;
+      //body.merge=true;
+      if (collection==='pilots') body.fields.isActive={booleanValue:true};
+      console.log(body);
+      return this.http.patch(this.url+collection+append,body,this.config).then(response=>{//omit /id to create new document, http.delete to delete
+        console.log(response.data);
         this.loading=false;
         if (!document._id) {
           document._id=this.getId(response.data);
@@ -357,9 +372,12 @@
         this.interval.cancel(this.refreshInterval);
         this.clicked=undefined;
         this.token=window.user.accessToken;
-        this.config={headers: {
-          'Authorization': 'Bearer ' + this.token 
-        }};
+        this.config={//merge:true,
+                    headers: {
+                      'Authorization': 'Bearer ' + this.token 
+                    }
+          
+        };
       }
     }
     
@@ -446,10 +464,15 @@
         if (key==='_id') continue;
         if (key==='$$hashKey') continue;
         else {
-          fields[key]={stringValue:json[key]||""};
+          if (typeof json[key]==="boolean") fields[key]={booleanValue:json[key]};
+          if (typeof json[key]==="string") fields[key]={stringValue:json[key]||""};
+          if (key==="empDouble") fields[key]={doubleValue:json[key]};
+          //test if string is actually a timestamp
+          if (typeof json[key]==="string"&&json[key].split('-').length===3&&json[key].split(':').length==3) fields[key]={timestampValue:json[key]};
+          if (key==='picC121'||key==='picC408') fields[key]={timestampValue:json[key]};
         }
       }
-      //console.log({fields});
+      console.log({fields});
       return {fields};
     }
     
@@ -458,8 +481,13 @@
       let id=this.getId(data);//data.name.split('/').pop();
       let json={_id:id};
       for (let key in fields) {
-        json[key]=fields[key].stringValue;
+        if (fields[key].timestampValue) json[key]=fields[key].timestampValue;
+        if (fields[key].booleanValue) json[key]=fields[key].booleanValue;
+        if (fields[key].integerValue) json[key]=fields[key].integerValue;
+        if (fields[key].doubleValue) json[key]=fields[key].doubleValue;
+        if (fields[key].stringValue) json[key]=fields[key].stringValue;
       }
+      if (id==="933") console.log(data);
       //console.log(json);
       return json;
     }
@@ -552,7 +580,7 @@
       this.loading=true;
       if (!record._id) this.records.unshift({date:new Date().toLocaleDateString(),trainingType:'recurrent',newBaseMonth:'false',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
       for (var key in record) {
-        if (!record[key]||record[key]===""||typeof record[key]!=='string') delete record[key];
+        if (!record[key]||record[key]==="") delete record[key];
       }
       let pilotIndex=this.pilots.map(e => e.name).indexOf(record.name);
       if (pilotIndex>-1) {

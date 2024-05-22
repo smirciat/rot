@@ -1,58 +1,78 @@
 @media print {
   /* All your print styles go here */
-  .navbar {
-    display: none !important;
+  .paper{
+    height:7.5in;
   }
-  .row {
-      display: block !important;
+  .paperFooter{
+    page-break-after: always;
   }
+  .ui-grid-cell{
+    border-style:solid !important;
+    border-color:black !important;
+    border-width: 1px 1px 0 1px !important;
+  }
+  .black {
+      background-color: silver !important;
+      color:yellow !important;
+      font-weight:bold !important;
+  }
+  @page { margin:1cm }
+    @page :first {
+      margin-top:1cm;
+    }
+    @page :left {
+      margin:1cm;
+    }
+    @page :right {
+      margin:1cm;
+    }
+}
+@media screen,print{
+  .beringBanner{
+    background-color:#FFD580 !important; 
+    border-style:solid;
+  }
+  .yellow {
+      background-color:yellow !important;
+      font-weight:bold;
+  }
+  
+  .green {
+      background-color:lightgreen !important;
+      font-weight:bold;
+  }
+  
+  .red {
+      background-color: red !important;
+      font-weight:bold;
+  }
+  
   .myGridOme {
-      display: block !important;
+      height:85vh;
   }
   .myGridOtz {
-      display: block !important;
+      height:40vh;
+  }
+  .center {
+      text-align:center;
+  }
+  .bering{
+      font-family: "Times New Roman", Times, serif;
+      text-decoration:underline;
+      font-style:italic;
+      
+  }
+  .fourteen{
+      font-size:1.75em;
+  }
+  .ten{
+      font-size:1.25em;
   }
 }
-
-.yellow {
-    background-color:yellow !important;
-    font-weight:bold;
-}
-
-.green {
-    background-color:lightgreen !important;
-    font-weight:bold;
-}
-
-.red {
-    background-color: red !important;
-    font-weight:bold;
-}
-
-.black {
-    background-color: black !important;
-    color:white;
-    font-weight:bold;
-}
-
-.myGridOme {
-    height:85vh;
-}
-.myGridOtz {
-    height:40vh;
-}
-.center {
-    text-align:center;
-}
-.bering{
-    font-family: "Times New Roman", Times, serif;
-    text-decoration:underline;
-    font-style:italic;
-    
-}
-.fourteen{
-    font-size:1.75em;
-}
-.ten{
-    font-size:1.25em;
+@media screen{
+  .black {
+      background-color: black !important;
+      color:white !important;
+      font-weight:bold !important;
+  }
 }

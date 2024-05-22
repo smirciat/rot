@@ -5,7 +5,7 @@
   <input class="form-control" type="text" id="username1" name="username1" ng-model="main.username"/>
   <label for="username1">Firebase Username</label>
   <br><br>
-  <input class="form-control" type="password" id="password1" name="password1" ng-model="main.password"/>
+  <input class="form-control" type="password" id="password1" name="password1" ng-model="main.password" ng-keypress="main.keypress($event)"/>
   <label for="password1">Firebase Password</label>
   <br><br>
   <button class="btn btn-success" ng-click="main.signInFirebase()"><span ng-if="main.clicked" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Click to Login Firebase</button>
