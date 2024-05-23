@@ -3,7 +3,7 @@
 exports = module.exports = {
   // List of user roles
   userRoles: ['guest', 'user', 'admin'],
-  trainingEventKeys:['BasicIndoc','Hazmat','299','297','297g',
+  trainingEventKeys:['BasicIndoc','Hazmat','far299','far297','far297g',
      'C208PIC','C208TKS','C208Ground',
      'B190PIC','B190SIC','B190Ground',
      'BE20PIC','BE20Ground',
@@ -18,9 +18,9 @@ exports = module.exports = {
                  {name:'B190Ground',frequency:'12',label:'Beech 1900 Ground Training'},
                  {name:'C212Ground',frequency:'12',label:'Casa 212 Ground Training'},
                  {name:'C408Ground',frequency:'12',label:'C408 Sky Courier Ground Training'},
-                  {name:'297',frequency:'6',label:'297 Instrument Proficiency Check'},
-                  {name:'297g',frequency:'12',label:'297G Autopilot Check'},
-                  {name:'299',frequency:'12',label:'299 Route Check'},
+                  {name:'far297',frequency:'6',label:'297 Instrument Proficiency Check'},
+                  {name:'far297g',frequency:'12',label:'297G Autopilot Check'},
+                  {name:'far299',frequency:'12',label:'299 Route Check'},
                  {name:'C208PIC',frequency:'12',label:'Caravan PIC Checkride'},
                  {name:'BE20PIC',frequency:'12',label:'King Air 200 PIC Checkride'},
                  {name:'B190PIC',frequency:'12',label:'Beech 1900 PIC Checkride'},

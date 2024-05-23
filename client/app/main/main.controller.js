@@ -22,7 +22,7 @@
       this.suffices = ['baseIndoc','baseHazmat','base293','base297','-','base208','base1900','baseKingAir','base408','baseCasa'];
       this.trainingTypes=['none','initial','recurrent', 'transition', 'upgrade', 'requalification'];
       //['none','initial flight','initial ground','recurrent flight','recurrent ground','transition flight','transition ground','upgrade flight','upgrade ground','requalification flight','requalification ground'];
-      this.types=['none','BasicIndoc','Hazmat','299','297','297g','C208','B190','BE20','C408','C212'];
+      this.types=['none','BasicIndoc','Hazmat','far299','far297','far297g','C208','B190','BE20','C408','C212'];
       this.instructors=['new','Kyle Lefebvre','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans'];
       this.formTypes=[];
       for (var i=0;i<formLabels.length;i++) {
@@ -154,11 +154,12 @@
           let index = this.pilots.map(e => e._id).indexOf(pilot._id);
           for (let key in pilot){
             if (pilot[key]!==""&&this.pilots[index]&&(!this.pilots[index][key]||this.pilots[index][key]==="")){
-          //    let arr=pilot[key].split('-');
-          //    if (arr.length===3) this.pilots[index][key]=arr[1]+'/'+arr[2]+'/'+arr[0];
-              this.pilots[index][key]=pilot[key];
+              let arr=pilot[key].split('-');
+              if (arr.length===3) this.pilots[index][key]=arr[1]+'/'+arr[2]+'/'+arr[0];
+              else this.pilots[index][key]=pilot[key];
             }
           }
+          //this.pilots[index].far299Exp=pilot['299Exp'];
           if (this.pilots[index]) {
             this.updateRecord('pilots',this.pilots[index]).then(res=>{
               this.loading=false;
@@ -328,17 +329,17 @@
       if (document._id) append+=document._id;
       else append+=Date.now();
       let body=this.toBody(document);
-      let maskQuery=[];//'?updateMask={fieldPaths:[';
+      let maskQuery='?';//updateMask.fieldPaths=";
       for (let key in body.fields) {
-        maskQuery.push(key);//+=key+',';
+        maskQuery+='updateMask.fieldPaths='+key+'&';
       }
-      //maskQuery=maskQuery.slice(0,-1);
-     // maskQuery+=']}';
+      maskQuery=maskQuery.slice(0,-1);
+      //maskQuery+=']';
       //body.updateMask=maskQuery;
       //body.merge=true;
-      if (collection==='pilots') body.fields.isActive={booleanValue:true};
+      //if (collection==='pilots') body.fields.isActive={booleanValue:true};
       console.log(body);
-      return this.http.patch(this.url+collection+append,body,this.config).then(response=>{//omit /id to create new document, http.delete to delete
+      return this.http.patch(this.url+collection+append+maskQuery,body,this.config).then(response=>{//omit /id to create new document, http.delete to delete
         console.log(response.data);
         this.loading=false;
         if (!document._id) {
@@ -464,12 +465,12 @@
         if (key==='_id') continue;
         if (key==='$$hashKey') continue;
         else {
-          if (typeof json[key]==="boolean") fields[key]={booleanValue:json[key]};
+          //if (typeof json[key]==="boolean") fields[key]={booleanValue:json[key]};
           if (typeof json[key]==="string") fields[key]={stringValue:json[key]||""};
-          if (key==="empDouble") fields[key]={doubleValue:json[key]};
+          //if (key==="empDouble") fields[key]={doubleValue:json[key]};
           //test if string is actually a timestamp
-          if (typeof json[key]==="string"&&json[key].split('-').length===3&&json[key].split(':').length==3) fields[key]={timestampValue:json[key]};
-          if (key==='picC121'||key==='picC408') fields[key]={timestampValue:json[key]};
+          //if (typeof json[key]==="string"&&json[key].split('-').length===3&&json[key].split(':').length==3) fields[key]={timestampValue:json[key]};
+          //if (key==='picC121'||key==='picC408') fields[key]={timestampValue:json[key]};
         }
       }
       console.log({fields});
@@ -481,10 +482,10 @@
       let id=this.getId(data);//data.name.split('/').pop();
       let json={_id:id};
       for (let key in fields) {
-        if (fields[key].timestampValue) json[key]=fields[key].timestampValue;
-        if (fields[key].booleanValue) json[key]=fields[key].booleanValue;
-        if (fields[key].integerValue) json[key]=fields[key].integerValue;
-        if (fields[key].doubleValue) json[key]=fields[key].doubleValue;
+        //if (fields[key].timestampValue) json[key]=fields[key].timestampValue;
+        //if (fields[key].booleanValue) json[key]=fields[key].booleanValue;
+        //if (fields[key].integerValue) json[key]=fields[key].integerValue;
+        //if (fields[key].doubleValue) json[key]=fields[key].doubleValue;
         if (fields[key].stringValue) json[key]=fields[key].stringValue;
       }
       if (id==="933") console.log(data);
@@ -895,8 +896,8 @@
               fields.Dropdown14=["C212"];
               fields.Dropdown15=["C212"];
             }
-            if (pilot['299']&&pilot['299']==="true") {//case "293(b) & 299": 
-              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('299');
+            if (pilot['far299']&&pilot['far299']==="true") {//case "293(b) & 299": 
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far299');
               frequency=this.appConfig.trainingEvents[eventIndex].frequency;
               fieldName = "Check Box6";
               fields[fieldName] =["X"];
@@ -905,8 +906,8 @@
               fieldName="299 Enroute Check EXP";
               fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
             }
-            if (pilot['297g']&&pilot['297g']==="true") {//case "297":
-              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('297g');
+            if (pilot['far297g']&&pilot['far297g']==="true") {//case "297":
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far297g');
               frequency=this.appConfig.trainingEvents[eventIndex].frequency; 
               fieldName="297(G) Autopilot EXP";
               fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
@@ -914,8 +915,8 @@
               fieldName = "Check Box5";
               fields[fieldName]=["X"];
             }
-            if (pilot['297']&&pilot['297']==="true") {//case "297":
-              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('297');
+            if (pilot['far297']&&pilot['far297']==="true") {//case "297":
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far297');
               frequency=this.appConfig.trainingEvents[eventIndex].frequency; 
               fieldName = "Check Box4";
               let i=this.months.indexOf(pilot.baseMonth);
