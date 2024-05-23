@@ -201,7 +201,10 @@
           record.trainingTypeCombo=record.trainingType + ' ' + record.flightOrGround;
           record.trainingTypeArray=[];
           this.appConfig.trainingEventKeys.forEach(key=>{
-            if (record[key]&&record[key]==="true") record.trainingTypeArray.push(key);
+            if (record[key]&&record[key]==="true") {
+              if (key.slice(0,3)==="far") key=key.substring(3);
+              record.trainingTypeArray.push(key);
+            }
           });
         }
       });

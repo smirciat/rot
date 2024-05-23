@@ -183,10 +183,15 @@ class OmeComponent {
         console.log(res);
         if (res.data.length===1&&!res.data[0].document) return [];
         this[collection]=this.filteredDocumentsToArray(res.data);
-        this[collection].sort((a,b)=>{
-          if (a.dateOfHire===undefined) return -1;
+        this[collection].sort((a, b) => {
+          if (a.far299Exp&&b.far299Exp) return new Date(a.dateOfHire) - new Date(b.dateOfHire);
+          if (a.far299Exp&&!b.far299Exp) return -1;
+          if (!a.far299Exp&&b.far299Exp) return 1;
           return new Date(a.dateOfHire) - new Date(b.dateOfHire);
         });
+          //if (a.dateOfHire===undefined) return -1;
+          //return new Date(a.dateOfHire) - new Date(b.dateOfHire);
+        //});
         this[collection];
         this[collection].forEach(pilot=>{
           for (let key in pilot){
@@ -289,16 +294,22 @@ class OmeComponent {
       medicalShortDate(row){
         let pilot=row;//.entity;
         let dateString=row.medicalDate;
+        let medClass=row.medicalClass;
         if (row.entity) {
           pilot=row.entity;
           dateString=row.entity.medicalDate;
+          medClass=row.entity.medicalClass;
         }
         let duration=6;
+        if (medClass==="SECOND") duration=12;
         let age=50;
         if (pilot.dateOfBirth&&pilot.dateOfBirth!=="") {
           age=this.moment().diff(new Date(pilot.dateOfBirth),'years',true);
         }
-        if (age&&age<40&&age!==0) duration=12;
+        if (age&&age<40&&age!==0) {
+          duration=12;
+          if (medClass==="SECOND") duration=24;
+        }
         let expDate=this.moment(new Date(dateString)).add(duration,'M').format('MM/DD/YYYY');
         if (expDate){
           let arr=expDate.split('/');
