@@ -128,6 +128,7 @@
         for (let key in pilot) {
           if (typeof pilot[key]==="string"&&pilot[key].split('-').length===3){
             let arr=pilot[key].split('-');
+            if (arr[0].length===3||arr[1].length===3) continue;
             pilot[key]=arr[1]+'/'+arr[2]+'/'+arr[0];
           }
         }
@@ -155,7 +156,7 @@
           for (let key in pilot){
             if (pilot[key]!==""&&this.pilots[index]&&(!this.pilots[index][key]||this.pilots[index][key]==="")){
               let arr=pilot[key].split('-');
-              if (arr.length===3) this.pilots[index][key]=arr[1]+'/'+arr[2]+'/'+arr[0];
+              if (arr.length===3&&arr[0].length>3&&arr[1].length<3) this.pilots[index][key]=arr[1]+'/'+arr[2]+'/'+arr[0];
               else this.pilots[index][key]=pilot[key];
             }
           }
@@ -759,7 +760,11 @@
 	    });
 	    let nbm="NO"
 	    if (pilot.newBaseMonth==="true") nbm="YES";
-      var fields={"Cert Type":[certType],
+	    let pilotIndex = this.pilots.map(e => e.name).indexOf(pilot.instructor);
+	    if (pilotIndex>-1) pilot.instructorCert=this.pilots[pilotIndex].cert;
+	    else pilot.instructorCert="";
+      var fields={"Cert Type1":[certType],
+                  "CertType":[certType],
                   "Pilots Name":[pilot.name],
                   "Date of Birth":[pilot.dateOfBirth],
                   "Cert Number":[pilot.cert],
@@ -768,13 +773,14 @@
                   "Date of Check":[dateObj],
                   "Check Airman":[pilot.checkAirman],
                   "Check Airman Cert #":[pilot.checkAirmanCert],
-                  "Dropdown19":[trainingClass],
-                  "Group4":["Choice4"],
-                  "Choice4":["X"],
+                  "Group44":["44"],
+                  "44":"X",
                   "BaseMonth":[pilot.baseMonth.toUpperCase()],
                   "NewBaseMonth":[nbm],
-                  "Group24":["X"]
+                  "Group24":["X"],
+                  "Text1":[pilot.instructor+'/'+pilot.instructorCert]
       };
+      if (PDFFileName!=="ROT") fields.Dropdown19=[trainingClass];
       //this.formTypes.forEach(form=>{
         //if (form.radio) {
           let fieldName,frequency,eventIndex;
@@ -789,14 +795,12 @@
               fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
               fieldName="Instructor 1";
               fields[fieldName]=[pilot.instructor];
-              fieldName="BIDropdown";
-              fields[fieldName]=["S"];
+              if (PDFFileName==="ROT") fields.Dropdown1=["S"];
               fieldName="Date1_af_date";
               fields[fieldName]=[dateObj];
               fieldName="Instructor 2";
               fields[fieldName]=[pilot.instructor];
-              fieldName="GEDropdown";
-              fields[fieldName]=["S"];
+              if (PDFFileName==="ROT") fields.Dropdown2=["S"];
               fieldName="Date2_af_date";
               fields[fieldName]=[dateObj];
             }
@@ -809,14 +813,12 @@
               frequency='12';
               fieldName="Instructor 8";
               fields[fieldName]=[pilot.instructor];
-              fieldName="AGDropdown";
-              fields[fieldName]=["S"];
+              if (PDFFileName==="ROT") fields.Dropdown8=["S"];
               fieldName="Date8_af_date";
               fields[fieldName]=[dateObj];
               fieldName="Instructor 9";
               fields[fieldName]=[pilot.instructor];
-              fieldName="AGGOSDropdown";
-              fields[fieldName]=["S"];
+              if (PDFFileName==="ROT") fields.Dropdown9=["S"];
               fieldName="Date9_af_date";
               fields[fieldName]=[dateObj];
             }
@@ -842,8 +844,7 @@
               fields[fieldName] =["X"];
               fieldName="Instructor 10";
               fields[fieldName]=[pilot.instructor];
-              fieldName="AFDropdown";
-              fields[fieldName]=["S"];
+              if (PDFFileName==="ROT") fields.Dropdown10=["S"];
               fieldName="Date10_af_date";
               fields[fieldName]=[dateObj];
             }
@@ -866,38 +867,37 @@
             if ((pilot.C208PIC&&pilot.C208PIC==="true")||(pilot.C208Ground&&pilot.C208Ground==="true")){
               fieldName="AC Type";
               fields[fieldName]=["C208"];
-              fields.Dropdown13=["C208"];
-              fields.Dropdown14=["C208"];
-              fieldName="Dropdown15";
-              fields[fieldName]=["C208"];
+              fields.Dropdown26=["C208"];
+              //fields.Dropdown17=["C208"];
+              fields.Dropdown25=["C208"];
             }
             if ((pilot.BE20PIC&&pilot.BE20PIC==="true")||(pilot.BE20Ground&&pilot.BE20Ground==="true")){
               fieldName="AC Type";
               fields[fieldName]=["BE20"];
-              fields.Dropdown13=["BE20"];
-              fields.Dropdown14=["BE20"];
-              fields.Dropdown15=["BE20"];
+              fields.Dropdown25=["BE20"];
+              fields.Dropdown26=["BE20"];
+              //fields.Dropdown17=["BE20"];
             }
             if ((pilot.B190PIC&&pilot.B190PIC==="true")||(pilot.B190SIC&&pilot.B190SIC==="true")||(pilot.B190Ground&&pilot.B190Ground==="true")){
               fieldName="AC Type";
               fields[fieldName]=["B190"];
-              fields.Dropdown13=["B190"];
-              fields.Dropdown14=["B190"];
-              fields.Dropdown15=["B190"];
+              fields.Dropdown25=["B190"];
+              fields.Dropdown26=["B190"];
+              //fields.Dropdown17=["B190"];
             }
             if ((pilot.C408PIC&&pilot.C408PIC==="true")||(pilot.C408SIC&&pilot.C408SIC==="true")||(pilot.C408Ground&&pilot.C408Ground==="true")){
               fieldName="AC Type";
               fields[fieldName]=["C408"];
-              fields.Dropdown13=["C408"];
-              fields.Dropdown14=["C408"];
-              fields.Dropdown15=["C408"];
+              fields.Dropdown25=["C408"];
+              fields.Dropdown26=["C408"];
+              //fields.Dropdown17=["C408"];
             }
             if ((pilot.C212PIC&&pilot.C212PIC==="true")||(pilot.C212SIC&&pilot.C212SIC==="true")||(pilot.C212Ground&&pilot.C212Ground==="true")){
               fieldName="AC Type";
               fields[fieldName]=["C212"];
-              fields.Dropdown13=["C212"];
-              fields.Dropdown14=["C212"];
-              fields.Dropdown15=["C212"];
+              fields.Dropdown25=["C212"];
+              fields.Dropdown26=["C212"];
+              //fields.Dropdown17=["C212"];
             }
             if (pilot['far299']&&pilot['far299']==="true") {//case "293(b) & 299": 
               eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far299');
@@ -933,8 +933,7 @@
             if (pilot.Hazmat&&pilot.Hazmat==="true") {//case "HAZMAT":
               fieldName="Instructor 3";
               fields[fieldName]=[pilot.instructor];
-              fieldName="HZDropdown";
-              fields[fieldName]=["S"];
+              if (PDFFileName==="ROT") fields.Dropdown3=["S"];
               fieldName="Date3_af_date";
               fields[fieldName]=[dateObj];
             }
