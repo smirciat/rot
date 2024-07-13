@@ -214,6 +214,7 @@ class OmeComponent {
               }
             }
           }
+          pilot.revert=false;
           pilot.medicalExp=this.medicalShortDate(pilot);
         });
         this.gridOptions.data=this[collection];
@@ -342,17 +343,17 @@ class OmeComponent {
           baseMonth+=12;
           baseYear--;
         }
-        if (true) {
+        if (row.entity) {
           let index = this.gridOptions.data.map(e => e._id).indexOf(pilot._id);
           if (index>-1) this.gridOptions.data[index].medicalExp=expDate;
+        }
         //test if expired first class, then revert to second class
-          if (baseMonth<thisMonth&&baseYear===thisYear&&medClass==="FIRST") {
-            row.revert=true;
-            row.medicalClass="SECOND";
-            expDate=this.medicalShortDate(row);
-            console.log('revert');
-            console.log(row);
-          }
+        if (baseMonth<thisMonth&&baseYear===thisYear&&medClass==="FIRST") {
+          row.revert=true;
+          row.medicalClass="SECOND";
+          expDate=this.medicalShortDate(row);
+          console.log('revert');
+          console.log(row);
         }
         return expDate;
       }
