@@ -10,3 +10,4 @@ npm-debug.log
 coverage
 /client/index.html
 server/app.js
+/server/app.js
