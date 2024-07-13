@@ -110,10 +110,6 @@
                 //this.fixImport();
               });
             });
-            
-            
-            
-            
           }
         },0);
       },true);
@@ -154,7 +150,7 @@
           if (pilot.C408PICExp&&pilot.C408PICExp.length>=1) pilot.C408PICExp=pilot.C408PICExp.slice(0,-1); 
           let index = this.pilots.map(e => e._id).indexOf(pilot._id);
           for (let key in pilot){
-            if (pilot[key]!==""&&this.pilots[index]&&(!this.pilots[index][key]||this.pilots[index][key]==="")){
+            if (pilot[key]!=="") {//&&this.pilots[index]&&(!this.pilots[index][key]||this.pilots[index][key]==="")){
               let arr=pilot[key].split('-');
               if (arr.length===3&&arr[0].length>3&&arr[1].length<3) this.pilots[index][key]=arr[1]+'/'+arr[2]+'/'+arr[0];
               else this.pilots[index][key]=pilot[key];

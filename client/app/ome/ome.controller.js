@@ -128,10 +128,12 @@ class OmeComponent {
   
   medicalCellClass(grid, row, col, rowRenderIndex, colRenderIndex) {
     if (grid&&window.moment&&window.medicalShortDate&&row) {
-      console.log(grid);
-      let expDate;
+      let expDate, revert;
       let index = grid.options.data.map(e => e._id).indexOf(row.entity._id);
-      if (index>-1) expDate=grid.options.data[index].medicalExp;
+      if (index>-1) {
+        expDate=grid.options.data[index].medicalExp;
+        revert=grid.options.data[index].revert;
+      }
       if (!expDate||expDate==="") return;
       let base=window.moment(new Date(expDate)).endOf('month');
       let baseMonth=base.month();
@@ -145,12 +147,21 @@ class OmeComponent {
       if (thisYear-baseYear===-1) {
         baseMonth+=12;
       }
-      if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return;
-      if ((thisMonth-baseMonth)>=1) return "black";
-      if ((thisMonth-baseMonth)===0) return "red";
-      if ((thisMonth-baseMonth)===-1) return "yellow";
-      if ((thisMonth-baseMonth)===-2) return "green";
-      
+      if (revert) {
+        if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return "blue";
+        if ((thisMonth-baseMonth)>=1) return "black";
+        if ((thisMonth-baseMonth)===0) return "red";
+        if ((thisMonth-baseMonth)===-1) return "yellow";
+        if ((thisMonth-baseMonth)===-2) return "green";
+        return "blue";
+      }
+      else {
+        if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return;
+        if ((thisMonth-baseMonth)>=1) return "black";
+        if ((thisMonth-baseMonth)===0) return "red";
+        if ((thisMonth-baseMonth)===-1) return "yellow";
+        if ((thisMonth-baseMonth)===-2) return "green";
+      }
     }
   }
   
@@ -317,9 +328,31 @@ class OmeComponent {
             expDate=this.shortMonths[parseInt(arr[0],10)-1]+'-'+arr[2];//.slice(-2);
           }
         }
-        if (row.entity) {
+        let base=this.moment(new Date(expDate)).endOf('month');
+        let baseMonth=base.month();
+        let baseYear=base.year();
+        let today=window.moment();
+        let thisMonth=today.month();
+        let thisYear=today.year();
+        if (thisYear-baseYear===1) {
+          baseMonth-=12;
+          baseYear++;
+        }
+        if (thisYear-baseYear===-1) {
+          baseMonth+=12;
+          baseYear--;
+        }
+        if (true) {
           let index = this.gridOptions.data.map(e => e._id).indexOf(pilot._id);
           if (index>-1) this.gridOptions.data[index].medicalExp=expDate;
+        //test if expired first class, then revert to second class
+          if (baseMonth<thisMonth&&baseYear===thisYear&&medClass==="FIRST") {
+            row.revert=true;
+            row.medicalClass="SECOND";
+            expDate=this.medicalShortDate(row);
+            console.log('revert');
+            console.log(row);
+          }
         }
         return expDate;
       }

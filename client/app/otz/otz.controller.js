@@ -20,44 +20,68 @@ class OtzComponent {
     this.gridOptions={rowHeight:22,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
-                      {name:'d.O.H.',field:'dateOfHire',width:90,cellTemplate:cellTemplate},
+                      {name:'d.O.H.',field:'dateOfHireShort',width:90 },
                       {name:'emp',field:'_id',width:70},
                       {name:'cert',field:'cert',width:80},
                       {name:'med',field:'medicalExp',width:90,cellClass:this.medicalCellClass},
-                      {name:'oAS Card',field:'oas',minWidth:90,cellTemplate:cellTemplate},
-                      {name:'passport',field:'passport',width:90,cellTemplate:cellTemplate},
-                      {name:'russianVisa',field:'rus',minWidth:90,cellTemplate:cellTemplate},
-                      {name:'basicIndoc',field:'BasicIndocExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'293(a)1,4-8',field:'BasicIndocExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'hazmat',field:'HazmatExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'208Ground',field:'C208GroundExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'208TKS',field:'C208TKSExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'kingAirGround',field:'BE20GroundExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'b190Ground',field:'B190GroundExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'casaGround',field:'C212GroundExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'408Ground',field:'C408GroundExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate}
+                      {name:'oAS Card',field:'oasShort',minWidth:90 },
+                      {name:'passport',field:'passportShort',width:90 },
+                      {name:'russianVisa',field:'rusShort',minWidth:90 },
+                      {name:'basicIndoc',field:'BasicIndocExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'293(a)1,4-8',field:'BasicIndocExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'hazmat',field:'HazmatExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'208Ground',field:'C208GroundExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'208TKS',field:'C208TKSExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'kingAirGround',field:'BE20GroundExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'b190Ground',field:'B190GroundExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'casaGround',field:'C212GroundExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'408Ground',field:'C408GroundExpShort',minWidth:90,cellClass:this.cellClass }
                     ],
+                    enableGridMenu: true,
+                    enableSelectAll: true,
+                    exporterPdfDefaultStyle: {fontSize: 5},
+                    exporterPdfTableStyle: {margin: [10, 10, 10, 10]},
+                    exporterPdfTableHeaderStyle: {fontSize: 6, bold: true, italics: true, color: 'red'},
+                    exporterPdfHeader: { text: "My Header", style: 'headerStyle' },
+                    //exporterPdfFooter: function ( currentPage, pageCount ) {
+                    //  return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+                    //},
+                    exporterPdfCustomFormatter: function ( docDefinition ) {
+                      docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                      docDefinition.styles.footerStyle = { fontSize: 10, bold: true };
+                      return docDefinition;
+                    },
+                    exporterPdfOrientation: 'landscape',
+                    exporterPdfPageSize: 'LETTER',
+                    exporterPdfMaxGridWidth: 550,
+                    exporterCsvFilename: 'myFile.csv',
+                    exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+                    exporterExcelFilename: 'myFile.xlsx',
+                    exporterExcelSheetName: 'Sheet1',
+                    onRegisterApi: function(gridApi){
+                      this.gridApi = gridApi;
+                    },
                     data:this.data};
     this.gridOptions2={rowHeight:22,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
-                      {name:'d.O.H.',field:'dateOfHire',width:90,cellTemplate:cellTemplate},
+                      {name:'d.O.H.',field:'dateOfHireShort',width:90 },//,cellTemplate:cellTemplate},
                       {name:'emp',field:'_id',width:70},
                       {name:'cert',field:'cert',width:80},
                       {name:'med',field:'medicalExp',width:90,cellClass:this.medicalCellClass},//cellTemplate:medicalTemplate},
-                      {name:'297',field:'far297Exp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'Autopilot',field:'far297gExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'299',field:'far299Exp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'208',field:'C208PICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'kingAir',field:'BE20PICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'b190Pic',field:'B190PICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'b190Sic',field:'B190SICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'casaPic',field:'C212PICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'casaSic',field:'C212SICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'408Pic',field:'C408PICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'408Sic',field:'C408SICExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'chkAmn',field:'CheckAirmanObsExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate},
-                      {name:'fltInst',field:'FlightInstructorObsExp',minWidth:90,cellClass:this.cellClass,cellTemplate:cellTemplate}
+                      {name:'297',field:'far297ExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'Autopilot',field:'far297gExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'299',field:'far299ExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'208',field:'C208PICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'kingAir',field:'BE20PICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'b190Pic',field:'B190PICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'b190Sic',field:'B190SICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'casaPic',field:'C212PICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'casaSic',field:'C212SICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'408Pic',field:'C408PICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'408Sic',field:'C408SICExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'chkAmn',field:'CheckAirmanObsExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'fltInst',field:'FlightInstructorObsExpShort',minWidth:90,cellClass:this.cellClass }
                     ],
                     data:this.data};
   
@@ -104,9 +128,12 @@ class OtzComponent {
   
   medicalCellClass(grid, row, col, rowRenderIndex, colRenderIndex) {
     if (grid&&window.moment&&window.medicalShortDate&&row) {
-      let expDate;
+      let expDate, revert;
       let index = grid.options.data.map(e => e._id).indexOf(row.entity._id);
-      if (index>-1) expDate=grid.options.data[index].medicalExp;
+      if (index>-1) {
+        expDate=grid.options.data[index].medicalExp;
+        revert=grid.options.data[index].revert;
+      }
       if (!expDate||expDate==="") return;
       let base=window.moment(new Date(expDate)).endOf('month');
       let baseMonth=base.month();
@@ -120,12 +147,21 @@ class OtzComponent {
       if (thisYear-baseYear===-1) {
         baseMonth+=12;
       }
-      if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return;
-      if ((thisMonth-baseMonth)>=1) return "black";
-      if ((thisMonth-baseMonth)===0) return "red";
-      if ((thisMonth-baseMonth)===-1) return "yellow";
-      if ((thisMonth-baseMonth)===-2) return "green";
-      
+      if (revert) {
+        if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return "blue";
+        if ((thisMonth-baseMonth)>=1) return "black";
+        if ((thisMonth-baseMonth)===0) return "red";
+        if ((thisMonth-baseMonth)===-1) return "yellow";
+        if ((thisMonth-baseMonth)===-2) return "green";
+        return "blue";
+      }
+      else {
+        if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return;
+        if ((thisMonth-baseMonth)>=1) return "black";
+        if ((thisMonth-baseMonth)===0) return "red";
+        if ((thisMonth-baseMonth)===-1) return "yellow";
+        if ((thisMonth-baseMonth)===-2) return "green";
+      }
     }
   }
   
@@ -159,14 +195,25 @@ class OtzComponent {
         if (res.data.length===1&&!res.data[0].document) return [];
         this[collection]=this.filteredDocumentsToArray(res.data);
         this[collection].sort((a, b) => {
-          return a.far299Exp-b.far299Exp||new Date(a.dateOfHire) - new Date(b.dateOfHire);
           if (a.far299Exp&&b.far299Exp) return new Date(a.dateOfHire) - new Date(b.dateOfHire);
           if (a.far299Exp&&!b.far299Exp) return -1;
           if (!a.far299Exp&&b.far299Exp) return 1;
           return new Date(a.dateOfHire) - new Date(b.dateOfHire);
         });
+          //if (a.dateOfHire===undefined) return -1;
+          //return new Date(a.dateOfHire) - new Date(b.dateOfHire);
+        //});
         this[collection];
         this[collection].forEach(pilot=>{
+          for (let key in pilot){
+            if (key!=='medicalDate'&&typeof pilot[key]==='string'){
+              let arr=pilot[key].split('/');
+              if (arr.length===3){
+                let newKey=key+'Short';
+                pilot[newKey]=this.shortDate(pilot[key]);
+              }
+            }
+          }
           pilot.medicalExp=this.medicalShortDate(pilot);
         });
         this.gridOptions.data=this[collection];
@@ -255,7 +302,7 @@ class OtzComponent {
         return dateString;
       }
       
-            medicalShortDate(row){
+      medicalShortDate(row){
         let pilot=row;//.entity;
         let dateString=row.medicalDate;
         let medClass=row.medicalClass;
@@ -272,7 +319,7 @@ class OtzComponent {
         }
         if (age&&age<40&&age!==0) {
           duration=12;
-          if (medClass==="SECOND")  duration=24;
+          if (medClass==="SECOND") duration=24;
         }
         let expDate=this.moment(new Date(dateString)).add(duration,'M').format('MM/DD/YYYY');
         if (expDate){
@@ -281,9 +328,31 @@ class OtzComponent {
             expDate=this.shortMonths[parseInt(arr[0],10)-1]+'-'+arr[2];//.slice(-2);
           }
         }
-        if (row.entity) {
+        let base=this.moment(new Date(expDate)).endOf('month');
+        let baseMonth=base.month();
+        let baseYear=base.year();
+        let today=window.moment();
+        let thisMonth=today.month();
+        let thisYear=today.year();
+        if (thisYear-baseYear===1) {
+          baseMonth-=12;
+          baseYear++;
+        }
+        if (thisYear-baseYear===-1) {
+          baseMonth+=12;
+          baseYear--;
+        }
+        if (true) {
           let index = this.gridOptions.data.map(e => e._id).indexOf(pilot._id);
           if (index>-1) this.gridOptions.data[index].medicalExp=expDate;
+        //test if expired first class, then revert to second class
+          if (baseMonth<thisMonth&&baseYear===thisYear&&medClass==="FIRST") {
+            row.revert=true;
+            row.medicalClass="SECOND";
+            expDate=this.medicalShortDate(row);
+            console.log('revert');
+            console.log(row);
+          }
         }
         return expDate;
       }
