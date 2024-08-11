@@ -67,12 +67,14 @@ angular.module('rotApp')
           return function() {
             var args = Array.prototype.slice.call(arguments),
                 name = args.shift(),
-                formData = {},
+                _id=args.shift(),
+                formData = {_id:_id},
                 theModal;
             theModal = openModal({ //openModal is a function the modal service defines.  It is just a wrapper for $uibModal
               modal: {
                 formData:formData,
                 dismissable: true,
+                enterData: true,
                 title: 'Enter Required Information',
                 html: '<p>' + name + '</p>', //set the modal message here, name is the parameter we passed in
                 buttons: [ {//this is where you define you buttons and their appearances
@@ -81,7 +83,14 @@ angular.module('rotApp')
                   click: function(event) {
                     theModal.close(event);
                   }
-                },]
+                }, 
+                {
+                  classes: 'btn-danger',
+                  text: 'Cancel',
+                  click: function(event) {
+                    theModal.dismiss(event);
+                  }
+                }]
               }
             }, 'modal-success');
             theModal.result.then(function(event) {

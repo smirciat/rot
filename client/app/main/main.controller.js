@@ -390,19 +390,21 @@
     signInFirebase() {
       if (this.username&&this.username!=="") window.username=this.username;
       if (this.password&&this.password!=="") window.password=this.password;
-      if (window.username&&window.password) {
+      if (window.username&&window.password&&window.username!==""&&window.password!=="") {
         this.clicked=true;
         this.refreshInterval=this.interval(()=>{this.refreshToken()},50);
         window.signInFunction(window.username,window.password);
       }
+      //else alert('Please enter a username and password');
     }
     
     sendPasswordReset() {
-      if (this.username) {
+      if (this.username&&this.username!==""&&confirm("Are you sure you really want to reset the password for " + this.username + '?')) {
         window.passwordReset(this.username);
+        alert('Check your email for password change instructions');
       }
       else alert('Enter a valid Firebase email in the username field first, please.');
-    }
+      }
     
     fillPilotData(record,id){
       let pilotIndex=this.pilots.map(e => e._id).indexOf(record.pilotNumber);

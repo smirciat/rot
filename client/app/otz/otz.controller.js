@@ -3,9 +3,12 @@
 (function(){
 
 class OtzComponent {
-  constructor($http,$state,uiGridConstants,moment) {
+  constructor($http,$state,$timeout,$scope,uiGridConstants,moment,Modal) {
     this.state=$state;
     this.http=$http;
+    this.timeout=$timeout;
+    this.scope=$scope;
+    this.Modal=Modal;
     this.moment=moment;
     window.moment=moment;
     this.url="https://firestore.googleapis.com/v1/projects/brg-flight-report/databases/(default)/documents/";
@@ -15,15 +18,21 @@ class OtzComponent {
     for (let m=1;m<13;m++){
       this.shortMonths.push(new Date(m+'/1/2024').toLocaleString('default', { month: 'short' }));
     }
-    let medicalTemplate='<div class="ui-grid-cell-contents" title="TOOLTIP">{{grid.appScope.otz.medicalShortDate(row)}}</div>';
-    let cellTemplate='<div class="ui-grid-cell-contents" title="TOOLTIP">{{grid.appScope.otz.shortDate(COL_FIELD)}}</div>';
+    this.enterModal=this.Modal.confirm.enterData(formData =>{
+      let document={"_id":formData._id,medicalDate:formData.data};
+      console.log(document);
+      this.updateRecord(document).then(()=>{
+        this.init();
+      });
+    });
     this.gridOptions={rowHeight:22,
+                      enableCellEditOnFocus:true,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
                       {name:'d.O.H.',field:'dateOfHireShort',width:90 },
-                      {name:'emp',field:'_id',width:70},
+                      {name:'emp',field:'_id', enableCellEdit:false,width:70},
                       {name:'cert',field:'cert',width:80},
-                      {name:'med',field:'medicalExp',width:90,cellClass:this.medicalCellClass},
+                      {name:'med',field:'medicalExp', enableCellEdit:false,width:90,cellClass:this.medicalCellClass},
                       {name:'oAS Card',field:'oasShort',minWidth:90 },
                       {name:'passport',field:'passportShort',width:90 },
                       {name:'russianVisa',field:'rusShort',minWidth:90 },
@@ -63,12 +72,13 @@ class OtzComponent {
                     },
                     data:this.data};
     this.gridOptions2={rowHeight:22,
+                      enableCellEditOnFocus:true,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
                       {name:'d.O.H.',field:'dateOfHireShort',width:90 },//,cellTemplate:cellTemplate},
-                      {name:'emp',field:'_id',width:70},
+                      {name:'emp',field:'_id', enableCellEdit:false,width:70},
                       {name:'cert',field:'cert',width:80},
-                      {name:'med',field:'medicalExp',width:90,cellClass:this.medicalCellClass},//cellTemplate:medicalTemplate},
+                      {name:'med',field:'medicalExp', enableCellEdit:false,width:90,cellClass:this.medicalCellClass},//cellTemplate:medicalTemplate},
                       {name:'297',field:'far297ExpShort',minWidth:90,cellClass:this.cellClass },
                       {name:'Autopilot',field:'far297gExpShort',minWidth:90,cellClass:this.cellClass },
                       {name:'299',field:'far299ExpShort',minWidth:90,cellClass:this.cellClass },
@@ -84,10 +94,56 @@ class OtzComponent {
                       {name:'fltInst',field:'FlightInstructorObsExpShort',minWidth:90,cellClass:this.cellClass }
                     ],
                     data:this.data};
-  
+    this.gridOptions.onRegisterApi=(gridApi)=>{
+      let scope=this.scope;
+      this.gridApi=gridApi;
+      gridApi.cellNav.on.navigate(scope,(newRowcol, oldRowcol)=>{
+            if (newRowcol&&newRowcol.col.field==="medicalExp") {
+              //this.timeout(()=>{
+              this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id);
+              //},50);
+              scope.$broadcast('uiGridEventEndCellEdit');
+              return;
+            }
+            if (oldRowcol&&oldRowcol.row.entity[oldRowcol.col.field]!==this.tempCellValue) {
+              let field=oldRowcol.col.field;
+              //if (field==="medicalExp") return;
+              let value=oldRowcol.row.entity[field];
+              if (field.length>5&&field.slice(-5)==="Short"){
+                //prepare a short date for updating
+                field=field.slice(0,-5);
+                let arr=[];
+                if (value) arr=value.split('-');
+                if (arr.length===2) {
+                  let month=arr[0];
+                  if (this.shortMonths.indexOf(month)>-1) {
+                    month=this.shortMonths.indexOf(month);
+                    month++;
+                  }
+                  value=month+'/1/'+arr[1];
+                }
+                else {
+                  if (value && new Date(value) && new Date(value).getTime && !isNaN(new Date(value).getTime())) value=new Date(value).toLocaleDateString();
+                  //else return;
+                }
+              }
+              let document={"_id":oldRowcol.row.entity._id};
+              document[field]=value;
+              console.log(document);
+              if (field!=="medicalExp") this.updateRecord(document);
+            }
+            scope.$broadcast('uiGridEventEndCellEdit');
+            this.tempCellValue=angular.copy(newRowcol.row.entity[newRowcol.col.field]);
+      });
+    };
+    this.gridOptions2.onRegisterApi=angular.copy(this.gridOptions.onRegisterApi);
   }
   
   $onInit(){
+    this.init();
+  }
+  
+  init(){
     window.medicalShortDate=this.medicalShortDate;
     if (!window.user) this.state.go('main');
     else {
@@ -163,6 +219,24 @@ class OtzComponent {
         if ((thisMonth-baseMonth)===-2) return "green";
       }
     }
+  }
+  
+  async updateRecord(document){
+      let append='/';
+      let collection="pilots";
+      if (document._id) append+=document._id;
+      else return;//append+=Date.now();
+      let body=this.toBody(document);
+      let maskQuery='?';//updateMask.fieldPaths=";
+      for (let key in body.fields) {
+        maskQuery+='updateMask.fieldPaths='+key+'&';
+      }
+      maskQuery=maskQuery.slice(0,-1);
+      //console.log(body);
+      return this.http.patch(this.url+collection+append+maskQuery,body,this.config).then(response=>{//omit /id to create new document, http.delete to delete
+        console.log('Updated!');
+        console.log(response.data);
+      });
   }
   
   async getFilteredData(collection,filter){
