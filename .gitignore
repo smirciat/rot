@@ -4,8 +4,10 @@ public
 .idea
 client/bower_components
 dist
-/server/pdfs
-/server/fileserver
+server/pdfs/*
+!server/pdfs/.gitkeep
+server/fileserver/*
+!server/fileserver/.gitkeep
 /server/config/local.env.js
 npm-debug.log
 coverage
