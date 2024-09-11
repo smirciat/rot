@@ -5,6 +5,7 @@ public
 client/bower_components
 dist
 /server/pdfs
+/server/fileserver
 /server/config/local.env.js
 npm-debug.log
 coverage
