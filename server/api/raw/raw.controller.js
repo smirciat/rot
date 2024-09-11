@@ -88,7 +88,11 @@ export function upload(req,res){
 export function list(req,res){
   let folder=__dirname+'/../../fileserver';
   let files=fs.readdirSync(folder);
-  let JsonData=JSON.stringify(files);
+  let newFiles=[];
+  files.forEach(file=>{
+    if (Array.from(file)[0]!==".") newFiles.push(file);
+  });
+  let JsonData=JSON.stringify(newFiles);
   if (JsonData) res.status(200).json(JsonData);
 }
 
