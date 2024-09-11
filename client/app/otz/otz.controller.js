@@ -37,7 +37,7 @@ class OtzComponent {
                       {name:'passport',field:'passportShort',width:90 },
                       {name:'russianVisa',field:'rusShort',minWidth:90 },
                       {name:'basicIndoc',field:'BasicIndocExpShort',minWidth:90,cellClass:this.cellClass },
-                      {name:'293(a)1,4-8',field:'BasicIndocExpShort',minWidth:90,cellClass:this.cellClass },
+                      {name:'293(a)1,4-8',field:'BasicIndocExpShort', enableCellEdit:false,minWidth:90,cellClass:this.cellClass },
                       {name:'hazmat',field:'HazmatExpShort',minWidth:90,cellClass:this.cellClass },
                       {name:'208Ground',field:'C208GroundExpShort',minWidth:90,cellClass:this.cellClass },
                       {name:'208TKS',field:'C208TKSExpShort',minWidth:90,cellClass:this.cellClass },
@@ -67,9 +67,6 @@ class OtzComponent {
                     exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
                     exporterExcelFilename: 'myFile.xlsx',
                     exporterExcelSheetName: 'Sheet1',
-                    onRegisterApi: function(gridApi){
-                      this.gridApi = gridApi;
-                    },
                     data:this.data};
     this.gridOptions2={rowHeight:22,
                       enableCellEditOnFocus:true,
@@ -96,7 +93,7 @@ class OtzComponent {
                     data:this.data};
     this.gridOptions.onRegisterApi=(gridApi)=>{
       let scope=this.scope;
-      this.gridApi=gridApi;
+      //this.gridApi=gridApi;
       gridApi.cellNav.on.navigate(scope,(newRowcol, oldRowcol)=>{
             if (newRowcol&&newRowcol.col.field==="medicalExp") {
               //this.timeout(()=>{
@@ -130,7 +127,12 @@ class OtzComponent {
               let document={"_id":oldRowcol.row.entity._id};
               document[field]=value;
               console.log(document);
-              if (field!=="medicalExp") this.updateRecord(document);
+              if (field!=="medicalExp") {
+                //set row dirty
+                this.updateRecord(document).then(()=>{
+                  //set row clean
+                });
+              }
             }
             scope.$broadcast('uiGridEventEndCellEdit');
             this.tempCellValue=angular.copy(newRowcol.row.entity[newRowcol.col.field]);
@@ -173,7 +175,8 @@ class OtzComponent {
       if (thisYear-baseYear===-1) {
         baseMonth+=12;
       }
-      if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return;
+      if (thisYear-baseYear>1) return "black";
+      if (thisYear-baseYear<-1) return;
       if ((thisMonth-baseMonth)>1) return "black";
       if ((thisMonth-baseMonth)===1) return "red";
       if ((thisMonth-baseMonth)===0) return "yellow";
@@ -203,6 +206,7 @@ class OtzComponent {
       if (thisYear-baseYear===-1) {
         baseMonth+=12;
       }
+      if (thisYear-baseYear>1) return "black";
       if (revert) {
         if ((thisYear-baseYear>1)||(thisYear-baseYear<-1)) return "blue";
         if ((thisMonth-baseMonth)>=1) return "black";

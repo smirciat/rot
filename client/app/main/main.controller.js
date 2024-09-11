@@ -101,6 +101,11 @@
                 return a.name.localeCompare(b.name);
               });
               this.pilots=JSON.parse(JSON.stringify(localPilots));
+              //let pilotArr=[];
+              //localPilots.forEach(pilot=>{
+              //  pilotArr.push(pilot.name);
+              //});
+              //console.log(pilotArr.toString());
               localPilots.unshift({name:'All.................'});
               this.scope.$root.nav.pilots=localPilots;
               this.getData('records','?pageSize=300').then(response=>{

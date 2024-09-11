@@ -3,8 +3,8 @@
 angular.module('rotApp')
   .config(function ($stateProvider) {
     $stateProvider
-      .state('pdf', {
-        url: '/pdf',
+      .state('pdftab', {
+        url: '/pdftab',
         template: '<pdf></pdf>'
       });
   });

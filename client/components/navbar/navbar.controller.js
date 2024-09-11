@@ -11,6 +11,9 @@ class NavbarController {
   },{
     'title': 'Kotz',
     'state': 'otz'
+  },{
+    'title': 'Fileserver',
+    'state': 'pdftab'
   }];
 
   isCollapsed = true;

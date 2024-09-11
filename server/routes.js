@@ -16,6 +16,10 @@ export default function(app) {
     if (req.query) res.sendFile("./pdfs/" + req.query.filename, {root: __dirname});
     else res.status(500);
   });
+  app.get('/fileserver', function(req, res){
+    if (req.query) res.sendFile("./fileserver/" + req.query.filename, {root: __dirname});
+    else res.status(500);
+  });
   app.use('/api/pilots', require('./api/pilot'));
   app.use('/api/things', require('./api/thing'));
   app.use('/api/users', require('./api/user'));

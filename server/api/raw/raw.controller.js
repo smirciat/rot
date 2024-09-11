@@ -11,7 +11,7 @@
 
 import _ from 'lodash';
 import {Raw} from '../../sqldb';
-import bplist from 'bplist-parser';
+import fs from 'fs';
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -74,6 +74,28 @@ export function index(req, res) {
   return Raw.findAll()
     .then(respondWithResult(res))
     .catch(handleError(res));
+}
+
+
+export function upload(req,res){
+  let file=new Buffer.from(req.body.data,"base64");
+  let filename=req.body.filename||"nofilename";
+  filename=__dirname+'/../../fileserver/'+filename;
+  fs.writeFileSync(filename,file);
+  res.status(200).json("Response Text");
+}
+
+export function list(req,res){
+  let folder=__dirname+'/../../fileserver';
+  let files=fs.readdirSync(folder);
+  let JsonData=JSON.stringify(files);
+  if (JsonData) res.status(200).json(JsonData);
+}
+
+export function deleteFile(req,res){
+  let filename=__dirname+'/../../fileserver/'+req.body.filename;
+  fs.unlinkSync(filename);
+  res.status(200).json("File Deleted");
 }
 
 // Gets a single Raw from the DB
