@@ -19,11 +19,14 @@ class OtzComponent {
       this.shortMonths.push(new Date(m+'/1/2024').toLocaleString('default', { month: 'short' }));
     }
     this.enterModal=this.Modal.confirm.enterData(formData =>{
-      let document={"_id":formData._id,medicalDate:formData.data};
-      console.log(document);
-      this.updateRecord(document).then(()=>{
-        this.init();
-      });
+      this.timeout(()=>{
+        let document={"_id":formData._id,medicalDate:formData.data};
+        console.log(document);
+        if (!formData.data) return;
+        this.updateRecord(document).then(()=>{
+          this.init();
+        });
+      },0);
     });
     this.gridOptions={rowHeight:22,
                       enableCellEditOnFocus:true,
@@ -93,13 +96,14 @@ class OtzComponent {
                     data:this.data};
     this.gridOptions.onRegisterApi=(gridApi)=>{
       let scope=this.scope;
+      let timeout=this.timeout;
       //this.gridApi=gridApi;
       gridApi.cellNav.on.navigate(scope,(newRowcol, oldRowcol)=>{
             if (newRowcol&&newRowcol.col.field==="medicalExp") {
-              //this.timeout(()=>{
-              this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id);
-              //},50);
               scope.$broadcast('uiGridEventEndCellEdit');
+              //this.timeout(()=>{
+              timeout(()=>{this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id)},0);
+              //},50);
               return;
             }
             if (oldRowcol&&oldRowcol.row.entity[oldRowcol.col.field]!==this.tempCellValue) {
@@ -117,6 +121,7 @@ class OtzComponent {
                     month=this.shortMonths.indexOf(month);
                     month++;
                   }
+                  if (arr[1].length===2) arr[1]='20'+arr[1];
                   value=month+'/1/'+arr[1];
                 }
                 else {
@@ -272,12 +277,7 @@ class OtzComponent {
         console.log(res);
         if (res.data.length===1&&!res.data[0].document) return [];
         this[collection]=this.filteredDocumentsToArray(res.data);
-        this[collection].sort((a, b) => {
-          if (a.far299Exp&&b.far299Exp) return new Date(a.dateOfHire) - new Date(b.dateOfHire);
-          if (a.far299Exp&&!b.far299Exp) return -1;
-          if (!a.far299Exp&&b.far299Exp) return 1;
-          return new Date(a.dateOfHire) - new Date(b.dateOfHire);
-        });
+        
           //if (a.dateOfHire===undefined) return -1;
           //return new Date(a.dateOfHire) - new Date(b.dateOfHire);
         //});
@@ -295,6 +295,12 @@ class OtzComponent {
           pilot.revert=false;
           pilot.medicalExp=this.medicalShortDate(pilot);
         });
+        this[collection].sort((a, b) => {
+          //if (a.far299Exp&&b.far299Exp) return new Date(a.dateOfHire) - new Date(b.dateOfHire);
+          if (a.far299Exp&&!b.far299Exp) return -1;
+          if (!a.far299Exp&&b.far299Exp) return 1;
+          return new Date(a.dateOfHire) - new Date(b.dateOfHire);
+        });
         this.gridOptions.data=this[collection];
         this.gridOptions2.data=this[collection];
         return this[collection];
@@ -306,6 +312,7 @@ class OtzComponent {
       return this.http.get(this.url+collection+query,this.config).then(res=>{
         let q='?pageSize=300';
         this[collection].push(...this.documentsToArray(res.data.documents));
+        if (collection==='pilots') this[collection].sort((a,b)=>new Date(a.dateOfHire)-new Date(b.dateOfHire));
         //console.log(this.documentsToArray(res.data.documents));
         if (res.data.nextPageToken) {
           q+='&pageToken='+res.data.nextPageToken;
@@ -375,6 +382,7 @@ class OtzComponent {
         if (dateString){
           let arr=dateString.split('/');
           if (arr.length>=3) {
+            if (arr[2].length===2) arr[2]='20'+arr[2];
             return this.shortMonths[parseInt(arr[0],10)-1]+'-'+arr[2];//.slice(-2);
           }
         }
@@ -394,11 +402,11 @@ class OtzComponent {
         if (medClass==="SECOND") duration=12;
         let age=50;
         if (pilot.dateOfBirth&&pilot.dateOfBirth!=="") {
-          age=this.moment().diff(new Date(pilot.dateOfBirth),'years',true);
+          age=this.moment(dateString).diff(new Date(pilot.dateOfBirth),'years',true);
         }
         if (age&&age<40&&age!==0) {
           duration=12;
-          if (medClass==="SECOND") duration=24;
+          if (medClass==="SECOND") duration=12;
         }
         let expDate=this.moment(new Date(dateString)).add(duration,'M').format('MM/DD/YYYY');
         if (expDate){

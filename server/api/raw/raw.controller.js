@@ -12,6 +12,13 @@
 import _ from 'lodash';
 import {Raw} from '../../sqldb';
 import fs from 'fs';
+import config from '../../config/environment';
+const baseUrl = 'https://localhost:' + config.port;
+//const axios = require("axios");
+//const https = require("https");
+//const agent = new https.Agent({
+//    rejectUnauthorized: false
+//});
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -76,6 +83,13 @@ export function index(req, res) {
     .catch(handleError(res));
 }
 
+export function uploadRecord(req,res){
+  let file=new Buffer.from(req.body.data,"base64");
+  let filename=req.body.filename||"nofilename";
+  filename=__dirname+'/../../records/'+filename;
+  fs.writeFileSync(filename,file);
+  res.status(200).json("Response Text");
+}
 
 export function upload(req,res){
   let file=new Buffer.from(req.body.data,"base64");
@@ -83,6 +97,17 @@ export function upload(req,res){
   filename=__dirname+'/../../fileserver/'+filename;
   fs.writeFileSync(filename,file);
   res.status(200).json("Response Text");
+}
+
+export function listRecords(req,res){
+  let folder=__dirname+'/../../records';
+  let files=fs.readdirSync(folder);
+  let newFiles=[];
+  files.forEach(file=>{
+    if (Array.from(file)[0]!==".") newFiles.push(file);
+  });
+  let JsonData=JSON.stringify(newFiles);
+  if (JsonData) res.status(200).json(JsonData);
 }
 
 export function list(req,res){
@@ -98,6 +123,12 @@ export function list(req,res){
 
 export function deleteFile(req,res){
   let filename=__dirname+'/../../fileserver/'+req.body.filename;
+  fs.unlinkSync(filename);
+  res.status(200).json("File Deleted");
+}
+
+export function deleteRecord(req,res){
+  let filename=__dirname+'/../../records/'+req.body.filename;
   fs.unlinkSync(filename);
   res.status(200).json("File Deleted");
 }

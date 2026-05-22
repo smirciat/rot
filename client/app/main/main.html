@@ -22,8 +22,8 @@
                 <th></th>
                 <th></th>
                 <th></th>
-                <th>Emp#</th>
                 <th>Pilot</th>
+                <th>Emp#</th>
                 <th>Date</th>
                 <th>Initial/Recurrent</th>
                 <th>Type</th>
@@ -74,8 +74,8 @@
                 </td>
                 <td><button class="btn btn-warning" ng-class="main.isItDisabled()" ng-click="main.pdf(record,'FlightTest')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Flight Test</button></td>
                 <td><button class="btn btn-success" ng-class="main.isItDisabled()" ng-click="main.pdf(record,'FlightTestINDOC')"><span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>INDOC</button></td>
-                <td><input class="form-control" ng-model="record.pilotNumber" type="text" ng-blur="main.fillPilotData(record,recordIndex)"><!-- style="width:70px;">--></td>
                 <td><input class="form-control" ng-model="record.name" type="text" ng-click="main.showPilotModal(record.pilotNumber,record)"></td>
+                <td><input class="form-control" ng-model="record.pilotNumber" type="text" ng-blur="main.fillPilotData(record,recordIndex)"><!-- style="width:70px;">--></td>
                 <td><input class="form-control" ng-model="record.date" type="text" ng-blur="main.checkDate(record)"></td>
                 <!--<td><ui-select ng-model="record.trainingTypeCombo" theme="bootstrap" ng-disabled="disabled" ng-change="main.trainingType(record)">
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>

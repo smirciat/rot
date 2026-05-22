@@ -23,7 +23,7 @@
       this.trainingTypes=['none','initial','recurrent', 'transition', 'upgrade', 'requalification'];
       //['none','initial flight','initial ground','recurrent flight','recurrent ground','transition flight','transition ground','upgrade flight','upgrade ground','requalification flight','requalification ground'];
       this.types=['none','BasicIndoc','Hazmat','far299','far297','far297g','C208','B190','BE20','C408','C212'];
-      this.instructors=['new','Kyle Lefebvre','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans'];
+      this.instructors=['new','Kyle Lefebvre','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans','Andy Smircich','Neill Toelle','Josh Krebiehl','Tim Kunkel'];
       this.formTypes=[];
       for (var i=0;i<formLabels.length;i++) {
         this.formTypes.push({label:formLabels[i],suffix:this.suffices[i],radio:false,id:i});
@@ -35,6 +35,7 @@
       
       }); 
       this.radioModal = this.Modal.confirm.radio(formData => {
+        //select training types
         let recordIndex = 0;
         if (formData._id) recordIndex= this.records.map(e => e._id).indexOf(formData._id);
         this.records[recordIndex] = {...this.records[recordIndex],...formData};
@@ -43,6 +44,15 @@
           if (this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
             this.records[recordIndex][key]="true";
             this.records[recordIndex].trainingTypeArray.push(key);
+            if (key!=='far297'){
+              let expKey=key+'Exp';
+              //find pilot record
+              let pilotIndex = this.pilots.map(e => e.name).indexOf(this.records[recordIndex].name);
+              if (pilotIndex>-1&&this.pilots[pilotIndex][expKey]) {
+                let newMonth=new Date(this.pilots[pilotIndex][expKey]).toLocaleString('default', { month: 'long' });
+                if (this.months.indexOf(newMonth)>-1) this.records[recordIndex].baseMonth=newMonth;
+              }
+            }
           }
           if (!this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
             this.records[recordIndex][key]="false";
@@ -50,6 +60,7 @@
         }
       });
       this.pilotModal = this.Modal.confirm.pilotData(formData =>{
+        console.log(formData);
         if (!formData||!formData.name) {
           console.log('got this far');
           this.quickModal("Try again to enter the pilot data");
@@ -72,6 +83,7 @@
     }
 
     $onInit() {
+      this.http.get('/api/evaluations').then(res=>{console.log(res.data)})
       this.signInFirebase();
       this.scope.$watch('$root.nav.chosenPilot',(newVal,oldVal)=>{
         if (!newVal||!newVal.name) return;
@@ -94,8 +106,9 @@
             this.records=[];
             this.getData('pilots','?pageSize=300').then(res=>{
               let localPilots=JSON.parse(JSON.stringify(res));
+              //console.log(localPilots.filter(p=>p.empNumber==="1174"))
               localPilots=localPilots.filter(pilot=>{
-                return pilot.name&&pilot.name!=="";
+                return pilot.name&&pilot.name!==""&&(pilot.isActive===undefined||pilot.isActive);
               });
               localPilots.sort((a,b)=>{
                 return a.name.localeCompare(b.name);
@@ -107,7 +120,7 @@
               //});
               //console.log(pilotArr.toString());
               localPilots.unshift({name:'All.................'});
-              this.scope.$root.nav.pilots=localPilots;
+              //this.scope.$root.nav.pilots=localPilots;
               this.getData('records','?pageSize=300').then(response=>{
               //this.getFilteredData('records','?pageSize=300',{attribute:"name",value:"Scott Gordon"}).then(response=>{
                 this.refreshRecords();
@@ -472,7 +485,7 @@
         if (key==='_id') continue;
         if (key==='$$hashKey') continue;
         else {
-          //if (typeof json[key]==="boolean") fields[key]={booleanValue:json[key]};
+          if (typeof json[key]==="boolean"&&key.substring(0,4)==="high") fields[key]={booleanValue:json[key]};
           if (typeof json[key]==="string") fields[key]={stringValue:json[key]||""};
           //if (key==="empDouble") fields[key]={doubleValue:json[key]};
           //test if string is actually a timestamp
@@ -494,6 +507,7 @@
         //if (fields[key].integerValue) json[key]=fields[key].integerValue;
         //if (fields[key].doubleValue) json[key]=fields[key].doubleValue;
         if (fields[key].stringValue) json[key]=fields[key].stringValue;
+        if (key==="isActive") json[key]=fields[key].booleanValue;
       }
       if (id==="933") console.log(data);
       //console.log(json);
@@ -707,8 +721,8 @@
         }
       }
       if (frequencyString==='24') nextBaseYear++;
-      //if (nextBaseMonth<10) nextBaseMonth='0'+nextBaseMonth;
-      return new Date(nextBaseYear,nextBaseMonth,0).toLocaleDateString();
+      let arr=new Date(nextBaseYear,nextBaseMonth,0).toLocaleDateString().split('/');
+      if (arr.length===3) return arr[0]+'/'+arr[1]+'/'+arr[2].substring(2);
     }
     
     pdf(record,PDFFileName) {
@@ -762,7 +776,10 @@
 	      }
 	    });
 	    let nbm="NO"
-	    if (pilot.newBaseMonth==="true") nbm="YES";
+	    if (pilot.newBaseMonth==="true") {
+	      pilot.baseMonth=new Date(dateObj).toLocaleString('default', { month: 'long' })
+	      nbm="YES";
+	    }
 	    let pilotIndex = this.pilots.map(e => e.name).indexOf(pilot.instructor);
 	    if (pilotIndex>-1) pilot.instructorCert=this.pilots[pilotIndex].cert;
 	    else pilot.instructorCert="";

@@ -19,11 +19,14 @@ class OmeComponent {
       this.shortMonths.push(new Date(m+'/1/2024').toLocaleString('default', { month: 'short' }));
     }
     this.enterModal=this.Modal.confirm.enterData(formData =>{
-      let document={"_id":formData._id,medicalDate:formData.data};
-      console.log(document);
-      this.updateRecord(document).then(()=>{
-        this.init();
-      });
+      this.timeout(()=>{
+        let document={"_id":formData._id,medicalDate:formData.data};
+        console.log(document);
+        if (!formData.data) return;
+        this.updateRecord(document).then(()=>{
+          this.init();
+        });
+      },0);
     });
     //let medicalTemplate='<div class="ui-grid-cell-contents" title="TOOLTIP">{{grid.appScope.ome.medicalShortDate(row)}}</div>';
     //let cellTemplate='<div class="ui-grid-cell-contents" title="TOOLTIP">{{grid.appScope.ome.shortDate(COL_FIELD)}}</div>';
@@ -95,13 +98,15 @@ class OmeComponent {
                     data:this.data};
     this.gridOptions.onRegisterApi=(gridApi)=>{
       let scope=this.scope;
+      let timeout=this.timeout;
       //this.gridApi=gridApi;
       gridApi.cellNav.on.navigate(scope,(newRowcol, oldRowcol)=>{
             if (newRowcol&&newRowcol.col.field==="medicalExp") {
-              //this.timeout(()=>{
-              this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id);
-              //},50);
               scope.$broadcast('uiGridEventEndCellEdit');
+              //this.timeout(()=>{
+              timeout(()=>{this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id)},200);
+              //},50);
+              //timeout(()=>{
               return;
             }
             if (oldRowcol&&oldRowcol.row.entity[oldRowcol.col.field]!==this.tempCellValue) {
@@ -119,6 +124,7 @@ class OmeComponent {
                     month=this.shortMonths.indexOf(month);
                     month++;
                   }
+                  if (arr[1].length===2) arr[1]='20'+arr[1];
                   value=month+'/1/'+arr[1];
                 }
                 else {
@@ -131,6 +137,7 @@ class OmeComponent {
               console.log(document);
               if (field!=="medicalExp") this.updateRecord(document);
             }
+            //timeout(()=>{scope.$broadcast('uiGridEventEndCellEdit')},0);
             scope.$broadcast('uiGridEventEndCellEdit');
             this.tempCellValue=angular.copy(newRowcol.row.entity[newRowcol.col.field]);
       });
@@ -304,6 +311,7 @@ class OmeComponent {
       return this.http.get(this.url+collection+query,this.config).then(res=>{
         let q='?pageSize=300';
         this[collection].push(...this.documentsToArray(res.data.documents));
+        if (collection==='pilots') this[collection].sort((a,b)=>new Date(a.dateOfHire)-new Date(b.dateOfHire));
         //console.log(this.documentsToArray(res.data.documents));
         if (res.data.nextPageToken) {
           q+='&pageToken='+res.data.nextPageToken;
@@ -373,6 +381,7 @@ class OmeComponent {
         if (dateString){
           let arr=dateString.split('/');
           if (arr.length>=3) {
+            if (arr[2].length===2) arr[2]='20'+arr[2];
             return this.shortMonths[parseInt(arr[0],10)-1]+'-'+arr[2];//.slice(-2);
           }
         }
@@ -392,11 +401,11 @@ class OmeComponent {
         if (medClass==="SECOND") duration=12;
         let age=50;
         if (pilot.dateOfBirth&&pilot.dateOfBirth!=="") {
-          age=this.moment().diff(new Date(pilot.dateOfBirth),'years',true);
+          age=this.moment(dateString).diff(new Date(pilot.dateOfBirth),'years',true);
         }
         if (age&&age<40&&age!==0) {
           duration=12;
-          if (medClass==="SECOND") duration=24;
+          if (medClass==="SECOND") duration=12;
         }
         let expDate=this.moment(new Date(dateString)).add(duration,'M').format('MM/DD/YYYY');
         if (expDate){

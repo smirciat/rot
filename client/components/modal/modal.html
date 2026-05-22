@@ -30,7 +30,7 @@
     <label>PILOT BASE (OME/OTZ/HEL)</label>
     <ui-select ng-model="modal.formData.pilotBase" theme="bootstrap" ng-disabled="disabled">
       <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="base in ['OME','OTZ','HEL']" >
+      <ui-select-choices repeat="base in ['none','OME','OTZ','HEL']" >
         <div ng-bind-html="base | highlight: $select.search"></div>
       </ui-select-choices>
     </ui-select>
@@ -73,6 +73,10 @@
     <div ng-repeat="event in modal.trainingEvents track by $index">
       <label>{{event.label+' Base Month (MM/DD/YYYY)'}}</label>
       <input class="form-control" type="text" ng-model="modal.formData[event.name+'Exp']" ng-blur="modal.fixDate(event.name+'Exp')">
+    </div>
+    <div ng-repeat="t in modal.aircraftTypes">
+      <label>High Minumums Captain for {{t}}</label>
+      <input class="form-control" type="checkbox" ng-model="modal.formData['highMinimums'+t]">
     </div>
   </form>
 </div>

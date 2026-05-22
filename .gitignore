@@ -4,6 +4,10 @@ public
 .idea
 client/bower_components
 dist
+server/records/*
+!server/records/.gitkeep
+server/pdfs1/*
+!server/pdfs1/.gitkeep
 server/pdfs/*
 !server/pdfs/.gitkeep
 server/fileserver/*
@@ -14,3 +18,4 @@ coverage
 /client/index.html
 server/app.js
 /server/app.js
+server/firebase.json

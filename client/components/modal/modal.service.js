@@ -8,7 +8,11 @@ angular.module('rotApp')
      * @param  {String} modalClass - (optional) class(es) to be applied to the modal
      * @return {Object}            - the instance $uibModal.open() returns
      */
+    window.isOpenModal=false;
+    
     function openModal(scope = {}, modalClass = 'modal-default') {
+      if (window.isOpenModal) return;
+      window.isOpenModal=true;
       var modalScope = $rootScope.$new();
       angular.extend(modalScope, scope);
 
@@ -45,20 +49,25 @@ angular.module('rotApp')
                   classes: 'btn-danger',
                   text: name,
                   click: function(e) {
+                    window.isOpenModal=false;
                     theModal.close(e);
                   }
                 }, {
                   classes: 'btn-default',
                   text: 'Cancel',
                   click: function(e) {
+                    window.isOpenModal=false;
                     theModal.dismiss(e);
                   }
                 }]
               }
             }, 'modal-danger');
 
-            theModal.result.then(function(event) {
+            if (theModal) theModal.result.then(function(event) {
               del.apply(event, args);
+            }).catch(err=>{
+              console.log(err);
+              window.isOpenModal=false;
             });
           };
         },
@@ -81,6 +90,7 @@ angular.module('rotApp')
                   classes: 'btn-primary',
                   text: 'Confirm',
                   click: function(event) {
+                    window.isOpenModal=false;
                     theModal.close(event);
                   }
                 }, 
@@ -88,15 +98,17 @@ angular.module('rotApp')
                   classes: 'btn-danger',
                   text: 'Cancel',
                   click: function(event) {
+                    window.isOpenModal=false;
                     theModal.dismiss(event);
                   }
                 }]
               }
             }, 'modal-success');
-            theModal.result.then(function(event) {
+            if (theModal) theModal.result.then(function(event) {
               cb.apply(event, [formData]); //this is where all callback is actually called
             }).catch(err=>{
               console.log(err);
+              window.isOpenModal=false;
             });
           };
         },
@@ -122,21 +134,24 @@ angular.module('rotApp')
                   classes: 'btn-primary',
                   text: 'Confirm/Save',
                   click: function(event) {
+                    window.isOpenModal=false;
                     theModal.close(event);
                   }
                 }, {
                   classes: 'btn-danger',
                   text: 'Cancel',
                   click: function(event) {
+                    window.isOpenModal=false;
                     theModal.dismiss(event);
                   }
                 }]
               }
             }, 'modal-success');
-            theModal.result.then(function(event) {
+            if (theModal) theModal.result.then(function(event) {
               cb.apply(event, [formData]); //this is where all callback is actually called
             }).catch(err=>{
               console.log(err);
+              window.isOpenModal=false;
             });
           };
         },
@@ -163,6 +178,7 @@ angular.module('rotApp')
               pilot.combo=pilot._id+': '+pilot.name;
             });
             pilotArr.unshift({name:'new',combo:'new',_id:''});
+            let aircraftTypes=['C208','C408','B190','BE20','C212'];
             theModal = openModal({ //openModal is a function the modal service defines.  It is just a wrapper for $uibModal
               modal: {
                 formData:pilotData,
@@ -170,6 +186,7 @@ angular.module('rotApp')
                 trainingEvents:trainingEvents,
                 pilot:true,
                 dismissable: true,
+                aircraftTypes:aircraftTypes,
                 fixDate: function(key){
                   let dateString=this.formData[key];
                   if (typeof dateString==="string"){
@@ -201,21 +218,24 @@ angular.module('rotApp')
                   classes: 'btn-primary',
                   text: 'Confirm/Save',
                   click: function(event) {
+                    window.isOpenModal=false;
                     theModal.close(event);
                   }
                 }, {
                   classes: 'btn-danger',
                   text: 'Cancel',
                   click: function(event) {
+                    window.isOpenModal=false;
                     theModal.dismiss(event);
                   }
                 }]
               }
             }, 'modal-success');
-            theModal.result.then(function(event) {
+            if (theModal) theModal.result.then(function(event) {
               cb.apply(event, [pilotData]); //this is where all callback is actually called
             }).catch(err=>{
               console.log(err);
+              window.isOpenModal=false;
             });
           };
         },
@@ -239,14 +259,18 @@ angular.module('rotApp')
                   classes: 'btn-success',
                   text: 'OK',
                   click: function(event) {
+                    window.isOpenModal=false;
                     quickModal.close(event);
                   }
                 }]
               }
             }, 'modal-success');
 
-            quickModal.result.then(function(event) {
+            if (quickModal) quickModal.result.then(function(event) {
               del.apply(event, args);
+            }).catch(err=>{
+              console.log(err);
+              window.isOpenModal=false;
             });
           };
         } ,
@@ -276,22 +300,25 @@ angular.module('rotApp')
                   classes: 'btn-danger',
                   text: 'Delete',
                   click: function(e) {
+                    window.isOpenModal=false;
                     deleteModal.close(e);
                   }
                 }, {
                   classes: 'btn-default',
                   text: 'Cancel',
                   click: function(e) {
+                    window.isOpenModal=false;
                     deleteModal.dismiss(e);
                   }
                 }]
               }
             }, 'modal-danger');
 
-            deleteModal.result.then(function(event) {
+            if (deleteModal) deleteModal.result.then(function(event) {
               del.apply(event, args);
             }).catch(err=>{
               console.log(err);
+              window.isOpenModal=false;
             });
           };
         }

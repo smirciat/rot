@@ -6,11 +6,15 @@
 
 import errors from './components/errors';
 import path from 'path';
+//import lusca from 'lusca';
 import * as auth from './auth/auth.service';
 
 export default function(app) {
-  // Insert routes below
   app.use('/api/raws', require('./api/raw'));
+  app.use('/api/things', require('./api/thing'));
+  //app.use(lusca.csrf({angular:true}));
+  // Insert routes below
+  app.use('/api/evaluations', require('./api/evaluation'));
   //app.get('/pdf', auth.hasRole('admin'),function(req, res){
   app.get('/pdf', function(req, res){
     if (req.query) res.sendFile("./pdfs/" + req.query.filename, {root: __dirname});
@@ -20,8 +24,15 @@ export default function(app) {
     if (req.query) res.sendFile("./fileserver/" + req.query.filename, {root: __dirname});
     else res.status(500);
   });
+  app.get('/records', function(req, res){
+    if (req.query) res.sendFile("./records/" + req.query.filename, {root: __dirname});
+    else res.status(500);
+  });
+  app.get('/fileserver/attachments', function(req, res){
+    if (req.query) res.sendFile("./fileserver/attachments/" + req.query.filename, {root: __dirname});
+    else res.status(500);
+  });
   app.use('/api/pilots', require('./api/pilot'));
-  app.use('/api/things', require('./api/thing'));
   app.use('/api/users', require('./api/user'));
 
   app.use('/auth', require('./auth').default);

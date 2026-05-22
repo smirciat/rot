@@ -14,6 +14,7 @@ var db = {
 };
 
 // Insert models below
+db.Evaluation = db.sequelize.import('../api/evaluation/evaluation.model');
 db.Raw = db.sequelize.import('../api/raw/raw.model');
 db.Pilot = db.sequelize.import('../api/pilot/pilot.model');
 db.Thing = db.sequelize.import('../api/thing/thing.model');

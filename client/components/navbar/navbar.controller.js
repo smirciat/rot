@@ -5,6 +5,12 @@ class NavbarController {
   menu = [{
     'title': 'Home',
     'state': 'main'
+  },{'title': 'Records',
+    'state': 'records'
+  },{'title': 'Evals',
+    'state': 'pilotEvals'
+  },{'title': 'Log',
+    'state': 'sicHours'
   },{
     'title': 'Nome',
     'state': 'ome'
@@ -19,14 +25,25 @@ class NavbarController {
   isCollapsed = true;
   //end-non-standard
 
-  constructor(Auth) {
+  constructor(Auth,$http) {
     this.isLoggedIn = Auth.isLoggedIn;
     this.isAdmin = Auth.isAdmin;
     this.getCurrentUser = Auth.getCurrentUser;
+    this.http=$http;
   }
   
   $onInit(){
-    
+    this.http.post('/api/things/firebase',{collection:'pilots'}).then(res=>{
+      this.pilots=res.data.filter(pilot=>{
+        return pilot.name&&pilot.name!==""&&(pilot.isActive===undefined||pilot.isActive)&&pilot.pilotBase;
+      });
+      this.pilots.sort((a,b)=>{
+        return a.name.localeCompare(b.name);
+      });
+      this.pilots.unshift({name:'All.................'});
+      let index=this.pilots.map(e=>e.displayName).indexOf('K. Janke');
+      if (index>-1) this.chosenPilot=this.pilots[index];
+    });
   }
 
 }
