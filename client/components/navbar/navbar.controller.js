@@ -49,4 +49,5 @@ class NavbarController {
 }
 
 angular.module('rotApp')
-  .controller('NavbarController', NavbarController);
+  .controller('NavbarController', NavbarController)
+  ;

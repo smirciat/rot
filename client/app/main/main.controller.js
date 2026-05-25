@@ -83,6 +83,7 @@
     }
 
     $onInit() {
+      //this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:{_id:933,quals:[{text:'quals here',other:'val'}]}}).then(res=>{}).catch(err=>{console.log(err)})
       this.http.get('/api/evaluations').then(res=>{console.log(res.data)})
       this.signInFirebase();
       this.scope.$watch('$root.nav.chosenPilot',(newVal,oldVal)=>{
