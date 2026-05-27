@@ -29,7 +29,8 @@ class OtzComponent {
       },0);
     });
     this.gridOptions={rowHeight:22,
-                      enableCellEditOnFocus:true,
+                      enableCellEdit: false,
+                      //enableCellEditOnFocus:true,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
                       {name:'d.O.H.',field:'dateOfHireShort',width:90 },
@@ -72,7 +73,8 @@ class OtzComponent {
                     exporterExcelSheetName: 'Sheet1',
                     data:this.data};
     this.gridOptions2={rowHeight:22,
-                      enableCellEditOnFocus:true,
+                      enableCellEdit: false,
+                      //enableCellEditOnFocus:true,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
                       {name:'d.O.H.',field:'dateOfHireShort',width:90 },//,cellTemplate:cellTemplate},
@@ -100,10 +102,10 @@ class OtzComponent {
       //this.gridApi=gridApi;
       gridApi.cellNav.on.navigate(scope,(newRowcol, oldRowcol)=>{
             if (newRowcol&&newRowcol.col.field==="medicalExp") {
-              scope.$broadcast('uiGridEventEndCellEdit');
-              //this.timeout(()=>{
-              timeout(()=>{this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id)},0);
-              //},50);
+              //scope.$broadcast('uiGridEventEndCellEdit');
+              
+              //timeout(()=>{this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id)},0);
+              
               return;
             }
             if (oldRowcol&&oldRowcol.row.entity[oldRowcol.col.field]!==this.tempCellValue) {

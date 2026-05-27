@@ -16,7 +16,7 @@
         </li>
         <li>
           <div style="padding-top:.5em;padding-left:.5em;width:20em;">
-            <ui-select ng-model="nav.chosenPilot" theme="bootstrap" ng-disabled="disabled">
+            <ui-select ng-model="nav.chosenPilot" theme="bootstrap" ng-disabled="disabled" dropdown-position="down">
               <ui-select-match placeholder="Choose Pilot" tooltip-placement="auto" uib-tooltip="Click to Filter Results to One Pilot">{{$select.selected.name}}</ui-select-match>
               <ui-select-choices repeat="pilot in nav.pilots" >
                 <div ng-bind-html="pilot.name | highlight: $select.search"></div>

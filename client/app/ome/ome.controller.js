@@ -31,7 +31,8 @@ class OmeComponent {
     //let medicalTemplate='<div class="ui-grid-cell-contents" title="TOOLTIP">{{grid.appScope.ome.medicalShortDate(row)}}</div>';
     //let cellTemplate='<div class="ui-grid-cell-contents" title="TOOLTIP">{{grid.appScope.ome.shortDate(COL_FIELD)}}</div>';
     this.gridOptions={rowHeight:22,
-                      enableCellEditOnFocus:true,
+                      enableCellEdit: false,
+                      //enableCellEditOnFocus:true,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
                       {name:'d.O.H.',field:'dateOfHireShort',width:90 },
@@ -74,7 +75,8 @@ class OmeComponent {
                     exporterExcelSheetName: 'Sheet1',
                     data:this.data};
     this.gridOptions2={rowHeight:22,
-                      enableCellEditOnFocus:true,
+                      enableCellEdit: false,
+                      //enableCellEditOnFocus:true,
                       columnDefs: [
                       {name:'pilot',field:'name',minWidth:150},
                       {name:'d.O.H.',field:'dateOfHireShort',width:90 },//,cellTemplate:cellTemplate},
@@ -102,11 +104,10 @@ class OmeComponent {
       //this.gridApi=gridApi;
       gridApi.cellNav.on.navigate(scope,(newRowcol, oldRowcol)=>{
             if (newRowcol&&newRowcol.col.field==="medicalExp") {
-              scope.$broadcast('uiGridEventEndCellEdit');
-              //this.timeout(()=>{
-              timeout(()=>{this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id)},200);
-              //},50);
-              //timeout(()=>{
+              //scope.$broadcast('uiGridEventEndCellEdit');
+              
+              //timeout(()=>{this.enterModal('Please Enter New Medical Date (MM/DD/YYYY) for ' + newRowcol.row.entity.name,newRowcol.row.entity._id)},200);
+              
               return;
             }
             if (oldRowcol&&oldRowcol.row.entity[oldRowcol.col.field]!==this.tempCellValue) {
