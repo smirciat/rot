@@ -44,6 +44,7 @@ class RecordsComponent {
         if (newVal==='CERT') this.subs=this.categories;
         else this.subs=this.subtabs;
         this.subtab=undefined;
+        this.seat=undefined;
       }
     }); 
     //this.myInterval=this.interval(()=>{
@@ -137,6 +138,10 @@ class RecordsComponent {
   
   add(){
     if (!this.tab||!this.subtab) return this.toaster.error('Error','Need to select a tab before uploading');
+    if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
+      if (!this.seat) return this.toaster.error('Error','Need to select PIC or SIC for this aircraft');
+    }
+    else this.seat='PIC';
     if (!this.pilot||!this.pilot._id) return this.toaster.error('Error','Need to select a pilot in the navbar before uploading');
     let files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
@@ -156,7 +161,9 @@ class RecordsComponent {
             if (this.timeframe&&this.expKey) {
               //find existing exp date, if rebasing
               let date=new Date(this.date);
-              let existingDate=new Date(this.fullPilot[this.expKey]);
+              let existingDate;
+              let dateexists=this.fullPilot[this.expKey];
+              if (dateexists) existingDate=new Date(dateexists);
               //if early or late grace, and rebase is false
               if (this.isWithinOneMonth(date,existingDate)) {
                 if (!this.rebase) date=existingDate;
@@ -230,6 +237,7 @@ class RecordsComponent {
   }
   
   isWithinOneMonth(testDate, refDate) {
+    if (!refDate) return false;
     testDate=new Date(testDate);
     refDate=new Date(refDate);
     // Create new Date objects to avoid mutating original dates
@@ -307,7 +315,7 @@ class RecordsComponent {
         this.expKey='CheckAirmanObsExp';
         break;
       case 'OTHER-RECORDS':
-        this.expKey='tksExp';
+        this.expKey='C208TKSExp';
         break;
       default:  
         if (/^\d/.test(this.tab)) {
@@ -321,7 +329,7 @@ class RecordsComponent {
           break;
         }
         if (this.tab.substring(0,1)==="C"||this.tab.substring(0,1)==="B") {
-          this.expKey=this.tab + 'Exp';
+          this.expKey=this.tab + this.seat + 'Exp';
           break;
         }
     }

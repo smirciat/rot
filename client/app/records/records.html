@@ -13,6 +13,13 @@
             <div ng-bind-html="item | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
+        <ui-select ng-model="records.seat" theme="bootstrap" dropdown-position="down" 
+            ng-if="records.tab==='C212'||records.tab==='B190'||records.tab==='C408'">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in ['PIC','SIC']" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
         <ui-select ng-model="records.subtab" theme="bootstrap" dropdown-position="down">
           <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
           <ui-select-choices repeat="item in records.subs" >
