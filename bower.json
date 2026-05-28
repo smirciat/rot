@@ -12,6 +12,7 @@
     "angular-bootstrap": "~1.1.2",
     "font-awesome": ">=4.1.0",
     "lodash": "~2.4.1",
+    "AngularJS-Toaster": "angularjs-toaster#^3.0.0",
     "angular-ui-router": "~0.3.1",
     "angular-validation-match": "~1.5.2",
     "angularPrint": "angular-print#^0.3.8",

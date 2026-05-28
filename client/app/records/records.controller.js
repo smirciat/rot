@@ -3,11 +3,12 @@
 (function(){
 
 class RecordsComponent {
-  constructor($scope,$timeout,$interval,$http) {
+  constructor($scope,$timeout,$interval,$http,toaster) {
     this.http=$http;
     this.timeout=$timeout;
     this.interval=$interval;
     this.scope=$scope;
+    this.toaster=toaster;
     this.testString-'Test String';
     this.fileName='';
     this.file=null;
@@ -135,8 +136,8 @@ class RecordsComponent {
   }
   
   add(){
-    if (!this.tab||!this.subtab) return alert('Need to select a tab before uploading');
-    if (!this.pilot||!this.pilot._id) return alert('Need to select a pilot in the navbar before uploading');
+    if (!this.tab||!this.subtab) return this.toaster.error('Error','Need to select a tab before uploading');
+    if (!this.pilot||!this.pilot._id) return this.toaster.error('Error','Need to select a pilot in the navbar before uploading');
     let files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
       files.forEach(f=>{
@@ -159,15 +160,15 @@ class RecordsComponent {
               //if early or late grace, and rebase is false
               if (this.isWithinOneMonth(date,existingDate)) {
                 if (!this.rebase) date=existingDate;
-                if (confirm('Are you sure you want to create a new base month?  It appears you are within the window.')) {
-                  alert('File upload successful, but expiration date not updated');
+                if (!confirm('Are you sure you want to create a new base month?  It appears you are within the window.')) {
+                  this.toaster.error('Error','File upload successful, but expiration date not updated');
                   this.init();
                   return;
                 }
               }
               else {
                 if (!this.rebase) {
-                  alert('You are not within the window for this event, you will have to rebase to save a new Exp date. File upload successful, but expiration date not updated');
+                  this.toaster.error('Error','You are not within the window for this event, you will have to rebase to save a new Exp date. File upload successful, but expiration date not updated');
                   this.init();
                   return;
                 }
@@ -177,7 +178,7 @@ class RecordsComponent {
               if (newDate<existingDate) {
                 console.log(existingDate);
                 console.log(newDate);
-                alert('New expiration date should not be earlier than the existing one! File upload successful, but expiration date not updated');
+                this.toaster.error('Error','New expiration date should not be earlier than the existing one! File upload successful, but expiration date not updated');
                 this.init();
                 return;
               }
@@ -192,8 +193,9 @@ class RecordsComponent {
                 }).catch(err=>{console.log(err)});
               }
               else {
-                alert('File upload successful, but expiration date not updated');
+                this.toaster.error('Error','File upload successful, but expiration date not updated');
                 this.init();
+                return;
               }
             }
             else {
@@ -204,7 +206,7 @@ class RecordsComponent {
                   this.fullPilot.medicalDate = this.dateString;
                   let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
                   if (index>-1) this.pilots[index]={ ...this.pilots[index], ...doc };
-                  alert('medical updated to ' + this.dateString);
+                  this.toaster.success('Success','medical updated to ' + this.dateString);
                   this.init();
                 }).catch(err=>{console.log(err)});
               }
@@ -215,16 +217,16 @@ class RecordsComponent {
               }
             }
             let d=document.getElementById('file');
-            if (d) d.value='';
+            //if (d) d.value='';
           }).catch(err=>{
             console.log(err);
-            alert('File upload failed');
+            this.toaster.error('Error','File upload failed');
           });
         };
         r.readAsBinaryString(f);
       });
     }
-    else alert('Need to finish adding the file first');
+    else this.toaster.error('Error','Need to finish adding the file first');
   }
   
   isWithinOneMonth(testDate, refDate) {
@@ -350,7 +352,7 @@ class RecordsComponent {
   		    let blob = new Blob([response.data]);
   	      saveAs(blob, filename);
         }).catch(err=>{
-          alert("File Not Found");
+          this.toaster.error('Error',"File Not Found");
           console.log(err);
           this.loading=false;
         });
@@ -377,7 +379,7 @@ class RecordsComponent {
     this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:this.pilot}).then(res=>{
       let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
       if (index>-1) this.pilots[index]={ ...this.pilots[index], ...this.pilot };
-      alert('Pilot '+this.pilot.name+' is updated');
+      this.toaster.success('Success','Pilot '+this.pilot.name+' is updated');
     }).catch(err=>{console.log(err)});
   }
   
