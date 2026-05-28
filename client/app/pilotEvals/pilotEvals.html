@@ -1,0 +1,39 @@
+<div style="width: 90%;margin-left: auto;margin-right: auto;">
+    <p>Choose Pilot Name from Pulldown List</p>
+    <div style="width:150px">
+        <ui-select ng-model="pilotEvals.currentPilot" theme="bootstrap" ng-disabled="disabled" ng-change="pilotEvals.filterEvals()">
+          <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="pilot in pilotEvals.pilotNames" >
+            <div ng-bind-html="pilot | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+    </div>
+    <hr>
+    <div>
+        <table class="table table-bordered table-bordered-bold">
+            <tr>
+                <th>Date</th>
+                <th>Flt#</th>
+                <th>Evaluator</th>
+                <th>Aircraft</th>
+                <th>Hours</th>
+                <th>Cumulative Hours</th>
+                <th>Total Score</th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr ng-repeat="e in pilotEvals.filteredEvals track by $index">
+                <td>{{e.date}}</td>
+                <td>{{e.Flt}}</td>
+                <td>{{e.Check_Pilot_Name}}</td>
+                <td>{{e.Aircraft_Type}}</td>
+                <td>{{e.Hours}}</td>
+                <td>{{e.cumHours}}</td>
+                <td>{{e.SCORE}}</td>
+                <td style="width:100px"><button class="btn btn-success" ng-click="pilotEvals.viewEval(e)">View Full Eval</button></td>
+                <td style="width:100px"><button class="btn btn-danger" ng-click="pilotEvals.deleteEval(e,$index)">Delete Evaluation</button></td>
+            </tr>
+        </table>
+        
+    </div>
+</div>

@@ -1,0 +1,157 @@
+<div style="width:90%;margin:auto;">
+    <h3>Select One or More Files to Upload</h3>
+    <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
+    <input class="form-control" style="width:800px;" type="file" multiple id="file" name="file" />
+    <br>
+    <div class="points-row">
+        <h5>Select Tab of File From List</h5>
+        <ui-select ng-model="records.tab" theme="bootstrap" dropdown-position="down">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in records.tabs" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <ui-select ng-model="records.subtab" theme="bootstrap" dropdown-position="down">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in records.subs" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <h5>Document Date</h5>
+        <!--<textarea rows="1" ng-model="records.dateString"></textarea>-->
+        <div style="padding-left:0px;padding-top:0px" class="input-group">
+          <input style="height:35px;width:150px;" type="text" ng-model="records.dateStringFormatted" 
+              ng-blur="records.upDate('string')" ng-keydown="records.handle($event)">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-primary" ng-click="records.isDatepickerOpen = !records.isDatepickerOpen">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+          <input style="display:none" type="text" class="form-control" uib-datepicker-popup="EEEE MMM d, yyyy" ng-model="records.date" ng-change="records.upDate()" 
+             is-open="records.isDatepickerOpen" datepicker-options="records.datepickerOptions" ng-required="true" close-text="Close" 
+             alt-input-formats="altInputFormats"/>
+        </div>
+        <h5>New Base Month?</h5>
+        <input type="checkbox" ng-model="records.rebase" class="f6Input">
+        <button class="btn btn-success" ng-click="records.add()">Upload File(s)</button>
+    </div>
+</div>
+<hr>
+<div style="width:90%;margin:auto;">
+    <h2 ng-click="records.collapse=!records.collapse">Pilot Duty Assignment/Qualification &nbsp 
+      <span ng-if="!records.collapse">
+        <i class="fa-solid fa-square-caret-up"></i>
+      </span>
+      <span ng-if="records.collapse">
+        <i class="fa-solid fa-square-caret-down"></i>
+      </span>
+    </h2>
+    <div ng-if="!records.collapse">
+        <table class="table table-bordered">
+          <thead><tr>
+            <th class="tight">Pilot's Name</th>
+            <th class="tight">Certificate Number</th>
+          </tr></thead>
+          <tbody><tr>
+            <td>{{records.pilot.name}}</td>
+            <td>{{records.pilot.cert}}</td>
+          </tr></tbody>
+        </table>
+        <table class="table table-bordered">
+          <thead><tr>
+            <th class="tight">Certificate Type(s)</th>
+          </tr></thead>
+          <tbody><tr>
+            <td>
+                ATP &nbsp
+                <input class="f6Input" type="checkbox" ng-model="records.pilot.atp">
+                Commercial &nbsp
+                <input class="f6Input" type="checkbox" ng-model="records.pilot.commercial">
+                CFI &nbsp
+                <input class="f6Input" type="checkbox" ng-model="records.pilot.cfi">
+                Other &nbsp
+                <input class="f6Input" type="checkbox" ng-model="records.pilot.other">
+                <input style="width:250px;" type="text" ng-model="records.pilot.otherDescription" ng-if="records.pilot.other">
+            </td>
+          </tr></tbody>
+        </table><table class="table table-bordered">
+          <thead><tr>
+            <th class="tight">Ratings</th>
+          </tr></thead>
+          </tbody>
+          <tbody><tr>
+            <td>
+                <input style="width:100%;" type="text" ng-model="records.pilot.ratings">
+            </td>
+          </tr></tbody>
+        </table>
+        </table><table class="table table-bordered">
+          <thead><tr style="font-size:10px;font-weight:bold;height:40px;">
+            <th>POSITION / DUTY ASSIGNMENT</th>
+            <th><div>VFR CHTR 135.293</div><div style="font-weight:normal">Flight Test</div></th>
+            <th>IFR CHTR 135.297 <div style="font-weight:normal">Flight Test</div></th>
+            <th>Commuter 135.244 <div style="font-weight:normal">OE</div></th>
+            <th>Autopilot 135.105 <div style="font-weight:normal">297g + 100hr</div></th>
+            <th>SIC <div style="font-weight:normal">Flight Test</div></th>
+            <th>Company Flight Instructor</th>
+            <th>Check Pilot</th>
+          </tr></thead>
+          <tbody>
+            <tr ng-repeat="row in records.pilot.quals track by $index">
+              <td>
+                <ui-select ng-model="row.pda" theme="bootstrap" on-select="records.selectPda(row,$index)" dropdown-position="down">
+                  <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="item in records.assignments" >
+                    <div ng-bind-html="item | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select>
+              </td>
+              <td><input type="text" ng-model="row.vfr"></td>
+              <td><input type="text" ng-model="row.ifr"></td>
+              <td><input type="text" ng-model="row.oe"></td>
+              <td><input type="text" ng-model="row.autopilot"></td>
+              <td><input type="text" ng-model="row.sic"></td>
+              <td><input type="text" ng-model="row.cfi"></td>
+              <td><input type="text" ng-model="row.checkPilot"></td>
+            </tr>
+            <tr><td><button class="btn btn-info" ng-click="records.pilot.quals.push({})">Add Row</button></td></tr>
+          </tbody>
+        </table>
+        <div style="display: flex; justify-content:left; margin-bottom:10px;">
+          <span style="margin-top:5px;">Medical Date:</span>&nbsp
+          <input type="text" ng-model="records.pilot.medicalDate">&nbsp&nbsp&nbsp&nbsp&nbsp
+          <span style="margin-top:5px;">Medical Class:</span>&nbsp
+          <ui-select ng-model="records.pilot.medicalClass" theme="bootstrap" dropdown-position="down">
+            <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+            <ui-select-choices repeat="item in ['FIRST','SECOND']" >
+              <div ng-bind-html="item | highlight: $select.search"></div>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+        <button class="btn btn-success" ng-click="records.savePilotAssignment()">Save Pilot Assignment Data</button>
+    </div>
+</div>
+<hr>
+<div style="width:90%;margin:auto;">
+    <div ng-repeat="cat in records.tabs">
+        <h2 ng-if="records.filterForCat(cat)">{{cat}}</h2>
+        <div ng-repeat="sub in records.whichSubs(cat) track by $index">
+          <h4 style="margin-left:20px" ng-if="records.filterForSub(cat,sub)">{{sub}}</h4>
+          <div ng-repeat="file in records.fullFiles | categoryFilter:cat:$index | orderBy:'-date' " class="points-row">
+            <div>
+              <a href="{{file.urlMain}}" target="_blank" ng-mouseenter="file.isPreviewVisible=true" ng-mouseleave="file.isPreviewVisible=false">
+                  <thumbnail file-type="{{file.type}}" source="{{file.urlMain}}" img-url="file.url" max-height="{{file.maxHeight}}" max-width="300"></thumbnail>
+              </a>
+              <div ng-if="file.isPreviewVisible" class="pdf-tooltip">
+                  <iframe ng-src="{{ file.urlMain  + '#navpanes=0' | trusted }}" style="height:100vh;width:80vw;" type="application/pdf"></iframe>
+              </div>
+            </div>
+            <h5>{{records.getDate(file.filename)}}&nbsp{{file.filename}}&nbsp</h5>
+            <button class="btn btn-primary" ng-click="records.downloadFile(file.filename)">Download File</button>
+            <button class="btn btn-danger" ng-click="records.deleteFile(file.filename)">Delete File</button>
+          </div>
+        </div>
+    </div>
+</div>
+<hr>
+

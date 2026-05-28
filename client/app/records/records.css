@@ -1,0 +1,29 @@
+.points-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+.tight{
+  font-size: 9px; /* or use rem/em for responsiveness */
+  padding: 2px 5px; /* small top/bottom padding for a tight fit */
+  line-height: 1; 
+}
+.f6Input{
+    margin:5px 50px 0px 5px !important;
+    transform: scale(2);
+}
+
+.pdf-tooltip {
+    position: fixed;
+    top: 0;
+    right: 50px;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.ui-select-choices {
+  top: 100% !important;
+  bottom: auto !important;
+}

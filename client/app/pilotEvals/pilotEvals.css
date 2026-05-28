@@ -1,0 +1,5 @@
+
+  .table-bordered-bold th,
+  .table-bordered-bold td {
+    border: 2px solid black !important;
+  }
