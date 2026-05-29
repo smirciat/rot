@@ -145,9 +145,10 @@ class RecordsComponent {
     if (!this.pilot||!this.pilot._id) return this.toaster.error('Error','Need to select a pilot in the navbar before uploading');
     let files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
-      files.forEach(f=>{
+      let f=files[0];
         this.timeframe=0;
-        this.expKey='';
+        this.expKey=undefined;
+        this.expKeyAlt=undefined;
         let filename=this.setFilename(f.name);
         //if (!confirm('Confirm uploading file ' + filename+ ' for ' + this.pilot.name)) return;
         let r = new FileReader();
@@ -174,7 +175,7 @@ class RecordsComponent {
                 }
               }
               else {
-                if (!this.rebase) {
+                if (!this.rebase&&dateexists) {
                   this.toaster.error('Error','You are not within the window for this event, you will have to rebase to save a new Exp date. File upload successful, but expiration date not updated');
                   this.init();
                   return;
@@ -192,6 +193,7 @@ class RecordsComponent {
               if (confirm('Update expiration for ' + this.expKey + ' to ' + newDate.toLocaleDateString() + '?')){
                 let doc={_id:this.pilot._id};
                 doc[this.expKey] = newDate.toLocaleDateString();
+                if (this.expKeyAlt) doc[this.expKeyAlt] = newDate.toLocaleDateString();
                 this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
                   this.fullPilot[this.expKey] = newDate.toLocaleDateString();
                   let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
@@ -231,7 +233,7 @@ class RecordsComponent {
           });
         };
         r.readAsBinaryString(f);
-      });
+      
     }
     else this.toaster.error('Error','Need to finish adding the file first');
   }
@@ -326,6 +328,7 @@ class RecordsComponent {
         if (this.tab.at(-1)==="G") {
           //All the ground currency tabs
           this.expKey=this.tab+'roundExp';
+          this.expKeyAlt=this.tab+'OSExp';
           break;
         }
         if (this.tab.substring(0,1)==="C"||this.tab.substring(0,1)==="B") {
