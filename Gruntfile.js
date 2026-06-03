@@ -358,6 +358,12 @@ module.exports = function(grunt) {
 
     // Copies remaining files to places other tasks can use
     copy: {
+      single_files: {
+        files: [
+          { src: '.tmp/concat/app/app.js', dest: 'dist/client/app/app.js' },
+          { src: '.tmp/concat/app/vendor.js', dest: 'dist/client/app/vendor.js' },
+        ]
+      },
       dist: {
         files: [{
           expand: true,
@@ -747,12 +753,10 @@ module.exports = function(grunt) {
     'postcss',
     'ngtemplates',
     'concat',
-    'ngAnnotate',
+    'copy:single_files',
     'copy:dist',
     'babel:server',
-    'cdnify',
     'cssmin',
-    'uglify',
     'filerev',
     'usemin'
   ]);

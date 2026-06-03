@@ -38,7 +38,7 @@
         //select training types
         let recordIndex = 0;
         if (formData._id) recordIndex= this.records.map(e => e._id).indexOf(formData._id);
-        this.records[recordIndex] = {...this.records[recordIndex],...formData};
+        Object.assign(this.records[recordIndex],...formData);
         this.records[recordIndex].trainingTypeArray=[];
         for (let key in this.records[recordIndex]) {
           if (this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
@@ -78,7 +78,7 @@
         let recordIndex = this.records.map(e => e._id).indexOf(this.recordId);
         this.records[recordIndex].pilotNumber=formData._id.toString();
         formData._id=this.recordId;
-        this.records[recordIndex] = {...this.records[recordIndex],...formData};
+        Object.assign(this.records[recordIndex],...formData);
       });
     }
 
@@ -288,7 +288,7 @@
       if(event.which === 13) this.signInFirebase();
     }
     
-    async getFilteredData(collection,filter){
+    getFilteredData(collection,filter){
       let structuredQuery={
         structuredQuery:{
           "from":{
@@ -320,7 +320,7 @@
       });
     }
     
-    async getData(collection,query){
+    getData(collection,query){
       if (!query||query==='undefined') query="";
       return this.http.get(this.url+collection+query,this.config).then(res=>{
         let q='?pageSize=300';
@@ -337,13 +337,13 @@
       });  
     }
     
-    async getRecord(collection,id){
+    getRecord(collection,id){
       return this.http.get(this.url+collection+'/'+id,this.config).then(res=>{
         return this.fromBody(res.data);
       });
     }
     
-    async updateRecord(collection,document){
+    updateRecord(collection,document){
       let append='/';
       if (document._id) append+=document._id;
       else append+=Date.now();
@@ -373,7 +373,7 @@
       });
     }
     
-    async deleteRecord(collection,id){
+    deleteRecord(collection,id){
       return this.http.delete(this.url+collection+'/'+id,this.config).then(response=>{//omit /id to create new document, http.delete to delete
         this.loading=false;
         //console.log(response.data);
@@ -431,7 +431,7 @@
       if (id===0&&pilotIndex>-1) {
         let pilot=JSON.parse(JSON.stringify(this.pilots[pilotIndex]));
         delete pilot._id;
-        this.records[0] = {...this.records[0],...pilot};
+        Object.assign(this.records[0],...pilot);
       }
     }
     

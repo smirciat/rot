@@ -1,20 +1,17 @@
 'use strict';
 
+import localEnv from '../local.env.js';
 // Production specific configuration
 // =================================
 module.exports = {
   // Server IP
-  ip:     process.env.OPENSHIFT_NODEJS_IP ||
-          process.env.IP ||
-          undefined,
+  ip: '127.0.0.1',
 
   // Server port
-  port:   process.env.OPENSHIFT_NODEJS_PORT ||
-          process.env.PORT ||
-          8080,
+  port:   58786,
 
   sequelize: {
-    uri:  process.env.SEQUELIZE_URI ||
+    uri:  localEnv.SEQUELIZE_URI ||
           'sqlite://',
     options: {
       logging: false,

@@ -232,7 +232,7 @@ class OtzComponent {
     }
   }
   
-  async updateRecord(document){
+  updateRecord(document){
       let append='/';
       let collection="pilots";
       if (document._id) append+=document._id;
@@ -250,7 +250,7 @@ class OtzComponent {
       });
   }
   
-  async getFilteredData(collection,filter){
+  getFilteredData(collection,filter){
       let structuredQuery={
         structuredQuery:{
           "from":{
@@ -309,7 +309,7 @@ class OtzComponent {
       });
     }
     
-    async getData(collection,query){
+    getData(collection,query){
       if (!query||query==='undefined') query="";
       return this.http.get(this.url+collection+query,this.config).then(res=>{
         let q='?pageSize=300';

@@ -53,7 +53,7 @@
     "grunt-build-control": "^0.7.0",
     "grunt-concurrent": "^2.0.1",
     "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-concat": "^1.0.0",
+    "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^1.0.0",
     "grunt-contrib-imagemin": "^1.0.0",
@@ -71,7 +71,7 @@
     "grunt-mocha-istanbul": "^4.0.2",
     "grunt-mocha-test": "~0.12.7",
     "grunt-newer": "^1.1.1",
-    "grunt-ng-annotate": "^2.0.1",
+    "grunt-ng-annotate": "^4.0.0",
     "grunt-ng-constant": "^2.0.1",
     "grunt-node-inspector": "^0.4.1",
     "grunt-nodemon": "^0.4.0",
@@ -110,7 +110,7 @@
   "scripts": {
     "test": "grunt test",
     "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update",
-    "start": "node server"
+    "start": "NODE_ENV='production' node server"
   },
   "private": true
 }

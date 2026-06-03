@@ -197,7 +197,7 @@ class RecordsComponent {
                 this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
                   this.fullPilot[this.expKey] = newDate.toLocaleDateString();
                   let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-                  if (index>-1) this.pilots[index]={ ...this.pilots[index], ...doc };
+                  if (index>-1) Object.assign(this.pilots[index], ...doc );
                   this.init();
                 }).catch(err=>{console.log(err)});
               }
@@ -214,7 +214,7 @@ class RecordsComponent {
                 this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
                   this.fullPilot.medicalDate = this.dateString;
                   let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-                  if (index>-1) this.pilots[index]={ ...this.pilots[index], ...doc };
+                  if (index>-1) Object.assign(this.pilots[index], ...doc );
                   this.toaster.success('Success','medical updated to ' + this.dateString);
                   this.init();
                 }).catch(err=>{console.log(err)});
@@ -389,7 +389,7 @@ class RecordsComponent {
     this.pilot.quals = filtered;
     this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:this.pilot}).then(res=>{
       let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-      if (index>-1) this.pilots[index]={ ...this.pilots[index], ...this.pilot };
+      if (index>-1) Object.assign(this.pilots[index], ...this.pilot );
       this.toaster.success('Success','Pilot '+this.pilot.name+' is updated');
     }).catch(err=>{console.log(err)});
   }
