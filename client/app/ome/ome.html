@@ -1,28 +1,30 @@
-<div print-section class="paper">
-    <div class="beringBanner row">
-        <div class="col-sm-2 fourteen"><strong class="bering">BERING AIR</strong></div>
-        <div class="col-sm-2 center fourteen">PILOTBOARD</div>
-        <div class="col-sm-4 center fourteen">NOME</div>
-        <div class="col-sm-4 center fourteen">{{ome.today|date:'EEEE, MMMM d, yyyy'}}</div>
+<div ng-if="ome.loggedIn()">
+    <div print-section class="paper">
+        <div class="beringBanner row">
+            <div class="col-sm-2 fourteen"><strong class="bering">BERING AIR</strong></div>
+            <div class="col-sm-2 center fourteen">PILOTBOARD</div>
+            <div class="col-sm-4 center fourteen">NOME</div>
+            <div class="col-sm-4 center fourteen">{{ome.today|date:'EEEE, MMMM d, yyyy'}}</div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 center ten">CREW INFORMATION</div>
+            <div class="col-sm-2 center ten">DOCUMENTS</div>
+            <div class="col-sm-7 center ten">RECURRENT GROUND</div>
+        </div>
+        <div class="myGridOme" ui-grid="ome.gridOptions" ui-grid-cellnav ui-grid-edit ui-grid-selection ui-grid-exporter ></div>
+        <div class="paperFooter"></div>
     </div>
-    <div class="row">
-        <div class="col-sm-3 center ten">CREW INFORMATION</div>
-        <div class="col-sm-2 center ten">DOCUMENTS</div>
-        <div class="col-sm-7 center ten">RECURRENT GROUND</div>
+    <div print-section class="paper">
+        <div class="beringBanner row">
+            <div class="col-sm-2 fourteen"><strong class="bering">BERING AIR</strong></div>
+            <div class="col-sm-2 center fourteen">PILOTBOARD</div>
+            <div class="col-sm-4 center fourteen">NOME</div>
+            <div class="col-sm-4 center fourteen">{{ome.today|date:'EEEE, MMMM d, yyyy'}}</div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3 center ten">CREW INFORMATION</div>
+            <div class="col-sm-9 center ten">FLIGHT TEST</div>
+        </div>
+        <div class="myGridOme" ui-grid="ome.gridOptions2" ui-grid-cellnav ui-grid-edit></div>
     </div>
-    <div class="myGridOme" ui-grid="ome.gridOptions" ui-grid-cellnav ui-grid-edit ui-grid-selection ui-grid-exporter ></div>
-    <div class="paperFooter"></div>
-</div>
-<div print-section class="paper">
-    <div class="beringBanner row">
-        <div class="col-sm-2 fourteen"><strong class="bering">BERING AIR</strong></div>
-        <div class="col-sm-2 center fourteen">PILOTBOARD</div>
-        <div class="col-sm-4 center fourteen">NOME</div>
-        <div class="col-sm-4 center fourteen">{{ome.today|date:'EEEE, MMMM d, yyyy'}}</div>
-    </div>
-    <div class="row">
-        <div class="col-sm-3 center ten">CREW INFORMATION</div>
-        <div class="col-sm-9 center ten">FLIGHT TEST</div>
-    </div>
-    <div class="myGridOme" ui-grid="ome.gridOptions2" ui-grid-cellnav ui-grid-edit></div>
 </div>

@@ -22,6 +22,10 @@ class PilotEvalsComponent {
     });
   }
   
+  loggedIn(){
+    return window.user&&window.user.accessToken;
+  }
+  
   filterEvals(){
     this.filteredEvals=this.evals.filter(e=>{
       return e.Pilot_Name===this.currentPilot;

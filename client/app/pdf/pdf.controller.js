@@ -19,7 +19,10 @@ class PdfComponent {
       if (d&&d.files) fileWatch=Array.from(d.files);
       if (fileWatch&&fileWatch.length>0) this.add();
     },1000);
-    
+  }
+  
+  loggedIn(){
+    return window.user&&window.user.accessToken;
   }
   
   refreshList(){

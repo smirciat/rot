@@ -54,6 +54,10 @@ class SicHoursComponent {
     }).catch(err=>{console.log(err)});
   }
   
+  loggedIn(){
+    return window.user&&window.user.accessToken;
+  }
+  
   onePage(flights,fields){
     for (let i=1;i<21;i++){
       if (flights[i-1]){

@@ -82,6 +82,10 @@ class RecordsComponent {
     });
   }
   
+  loggedIn(){
+    return window.user&&window.user.accessToken;
+  }
+  
   cleanObject(p){
     return {
       _id:p._id,name:p.name,quals:p.quals,ratings:p.ratings,other:p.other,otherDescription:p.otherDescription,

@@ -167,6 +167,10 @@ class OtzComponent {
     }
   }
   
+  loggedIn(){
+    return window.user&&window.user.accessToken;
+  }
+  
   cellClass(grid, row, col, rowRenderIndex, colRenderIndex) {
     if (grid) {
       if (!grid.getCellValue(row,col)||grid.getCellValue(row,col)==="") return;

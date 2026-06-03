@@ -1,26 +1,27 @@
-
-<h4>Cessna 408 SIC Flight Log</h4>
-<p>Pilot Name: {{sicHours.pilot.displayName}} , Certificate Number: {{sicHours.pilot.cert}}</p>
-<button class="btn btn-success" ng-click="sicHours.openPdf()">Create and Fill PDF Form(s)</button>
-<button class="btn btn-primary" ng-repeat="fileURL in sicHours.fileURLs track by $index" ng-click="sicHours.viewPage($index)">
-    View Page {{$index+1}}</button>
-<table class="table table-bordered">
-    <tr>
-        <th>Date</th>
-        <th>Flt#</th>
-        <th>Route</th>
-        <th>TO & Land</th>
-        <th>PIC</th>
-        <th>Flt Hours</th>
-        <th>Cum Hours</th>
-    </tr>
-    <tr ng-repeat="flight in sicHours.flights | orderBy:'-' track by $index">
-        <td>{{flight.dateString}}</td>
-        <td>{{flight.flightNumber}}</td>
-        <td>{{flight.route.toString()}}</td>
-        <td>{{flight.sicTO + ' / ' + flight.sicLND}}</td>
-        <td>{{flight.pilot}}</td>
-        <td>{{(flight.flightTime/60).toFixed(1)}}</td>
-        <td>{{flight.cumHours}}</td>
-    </tr>
-</table>
+<div ng-if="sicHours.loggedIn()">
+    <h4>Cessna 408 SIC Flight Log</h4>
+    <p>Pilot Name: {{sicHours.pilot.displayName}} , Certificate Number: {{sicHours.pilot.cert}}</p>
+    <button class="btn btn-success" ng-click="sicHours.openPdf()">Create and Fill PDF Form(s)</button>
+    <button class="btn btn-primary" ng-repeat="fileURL in sicHours.fileURLs track by $index" ng-click="sicHours.viewPage($index)">
+        View Page {{$index+1}}</button>
+    <table class="table table-bordered">
+        <tr>
+            <th>Date</th>
+            <th>Flt#</th>
+            <th>Route</th>
+            <th>TO & Land</th>
+            <th>PIC</th>
+            <th>Flt Hours</th>
+            <th>Cum Hours</th>
+        </tr>
+        <tr ng-repeat="flight in sicHours.flights | orderBy:'-' track by $index">
+            <td>{{flight.dateString}}</td>
+            <td>{{flight.flightNumber}}</td>
+            <td>{{flight.route.toString()}}</td>
+            <td>{{flight.sicTO + ' / ' + flight.sicLND}}</td>
+            <td>{{flight.pilot}}</td>
+            <td>{{(flight.flightTime/60).toFixed(1)}}</td>
+            <td>{{flight.cumHours}}</td>
+        </tr>
+    </table>
+</div>
