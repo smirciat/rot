@@ -95,6 +95,10 @@ class RecordsComponent {
   }
   
   $onInit(){
+    this.showSLEArray=[];
+    this.tabs.forEach(tab=>{
+      this.showSLEArray.push(false);
+    });
     this.date=new Date();
     this.upDate();
     window.categories=this.categories;
@@ -520,7 +524,32 @@ class RecordsComponent {
   }
   
   getPilotsFiles(){
+    this.singleLineEntry=[];
+    this.tabs.forEach(tab=>{
+      this.singleLineEntry.push({tab:tab,lines:[]});
+    });
     this.files.forEach(filename=>{
+      //populate SLE
+      let type,inst,associated,date;
+      const arr=filename.split('_');
+      const index=this.tabs.indexOf(arr[2]);
+      if (index>-1){
+        type=arr[3]+' '+arr[4];
+        if (arr[5]==='PIC'||arr[5]==='SIC') type+=' '+arr[5];
+        arr.forEach((str,i)=>{
+          if (str==="associated") associated=arr[i+1];
+        });
+        let recordsIndex=-1;
+        if (this.records) recordsIndex=this.records.map(e=>e._id).indexOf(associated);
+        if (recordsIndex>-1) {
+          if (this.records[recordsIndex].checkAirman) inst=this.records[recordsIndex].checkAirman;
+          if (this.records[recordsIndex].instructor) inst=this.records[recordsIndex].instructor;
+        }
+        if (arr[1]&&typeof arr[1]==='string'&&arr[1].length>4) date=arr[1].substring(0,2)+'/'+arr[1].substring(2,4)+'/'+arr[1].slice(4);
+        this.singleLineEntry[index].lines.push({name:this.pilot.name,cert:this.pilot.cert,date:date,type:type,inst:inst});
+      }
+      
+      //get the file
       this.http({ url: "/records?filename=" + filename,
           method: "GET", 
           responseType: 'arraybuffer' })

@@ -255,8 +255,37 @@
   </div>
   <hr>
   <div style="width:90%;margin:auto;">
-      <div ng-repeat="cat in records.tabs">
+      <div ng-repeat="cat in records.tabs track by $index" ng-init="tabIndex=$index">
           <h2 ng-if="records.filterCheck(cat)">{{cat}}</h2>
+          <!--Single line entry goes here-->
+          <div ng-if="records.filterCheck(cat)">
+            <h4 style="margin-left:20px" ng-click="records.showSLEArray[$index]=!records.showSLEArray[$index]">
+              <span ng-if="!records.showSLEArray[$index]">Show Single Line Entry Form <i class="fa-solid fa-plus"></i></span>
+              <span ng-if="records.showSLEArray[$index]">Hide Single Line Entry Form <i class="fa-solid fa-minus"></i></span>
+            </h4>
+            <div ng-if="records.showSLEArray[$index]">
+              <table class="table table-bordered">
+                <thead><tr>
+                  <th class="tight">Pilot's Name</th>
+                  <th class="tight">Certificate Number</th>
+                  <th class="tight">Date</th>
+                  <th class="tight">Training/Test</th>
+                  <th class="tight">Result</th>
+                  <th class="tight">Inst/Check Pilot</th>
+                </tr></thead>
+                <tbody>
+                  <tr ng-repeat="line in records.singleLineEntry[tabIndex].lines track by $index">
+                    <td>{{line.name}}</td>
+                    <td>{{line.cert}}</td>
+                    <td>{{line.date}}</td>
+                    <td>{{line.type}}</td>
+                    <td>S</td>
+                    <td>{{line.inst}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
           <div ng-repeat="sub in records.whichSubs(cat) track by $index" ng-init="subIndex = $index">
             <h4 style="margin-left:20px" ng-if="records.filterCheck(cat,sub)">{{sub}}</h4>
             <div ng-repeat="seat in records.seatArray(cat)">
