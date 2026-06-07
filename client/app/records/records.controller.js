@@ -3,7 +3,8 @@
 (function(){
 
 class RecordsComponent {
-  constructor($scope,$timeout,$interval,$http,toaster,appConfig,Modal) {
+  constructor($scope,$timeout,$interval,$http,toaster,appConfig,Modal,categoryFilterFilter) {
+    this.categoryFilter=categoryFilterFilter;
     this.appConfig=appConfig;
     this.Modal=Modal;
     this.http=$http;
@@ -480,6 +481,11 @@ class RecordsComponent {
     return [null];
   }
   
+  filterCheck(cat,sub,seat){
+    let array=this.categoryFilter(this.fullFiles,cat,sub,seat);
+    return array.length>0;
+  }
+  
   filterForSeat(cat,sub,seat){
     let files=this.fullFiles.filter(file=>{
       let arr=file.filename.split('_');
@@ -582,12 +588,17 @@ class RecordsComponent {
 angular.module('rotApp')
   .filter('categoryFilter',()=>{
     return function(input, cat, sub, seat) {
-      if (!input) return input;
-      //let subs=window.subtabs;
-      //if (cat==="CERT") subs=window.categories;
-      //let sub=subs[subIndex];
+      if (!input||!Array.isArray(input)) return [];
       
-      if (!seat) {
+      if (seat) {
+        return input.filter(item => {
+          let arr=item.filename.split('_');
+          if (arr[4]!=="PIC") arr[4]="SIC";
+          return arr[2]===cat&&arr[3]===sub&&arr[4]===seat;
+        });
+      }
+      
+      if (sub) {
         return input.filter(item => {
           let arr=item.filename.split('_');
           return arr[2]===cat&&arr[3]===sub;
@@ -595,10 +606,9 @@ angular.module('rotApp')
       }
       
       return input.filter(item => {
-        let arr=item.filename.split('_');
-        if (arr[4]!=="PIC") arr[4]="SIC";
-        return arr[2]===cat&&arr[3]===sub&&arr[4]===seat;
-      });
+          let arr=item.filename.split('_');
+          return arr[2]===cat;
+        });
     };
   })
   .component('records', {

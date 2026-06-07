@@ -252,11 +252,11 @@
   <hr>
   <div style="width:90%;margin:auto;">
       <div ng-repeat="cat in records.tabs">
-          <h2 ng-if="records.filterForSeat(cat)">{{cat}}</h2>
+          <h2 ng-if="records.filterCheck(cat)">{{cat}}</h2>
           <div ng-repeat="sub in records.whichSubs(cat) track by $index" ng-init="subIndex = $index">
-            <h4 style="margin-left:20px" ng-if="records.filterForSeat(cat,sub)">{{sub}}</h4>
+            <h4 style="margin-left:20px" ng-if="records.filterCheck(cat,sub)">{{sub}}</h4>
             <div ng-repeat="seat in records.seatArray(cat)">
-              <h5 style="margin-left:40px" ng-if="records.filterForSeat(cat,sub,seat)">{{seat}}</h5>
+              <h5 style="margin-left:40px" ng-if="records.filterCheck(cat,sub,seat)">{{seat}}</h5>
             
               <div ng-repeat="file in records.fullFiles | categoryFilter:cat:sub:seat | orderBy:'-date' " class="points-row">
                 <div>
