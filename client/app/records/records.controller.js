@@ -534,11 +534,16 @@ class RecordsComponent {
       const arr=filename.split('_');
       const index=this.tabs.indexOf(arr[2]);
       if (index>-1){
-        type=arr[3]+' '+arr[4];
-        if (arr[5]==='PIC'||arr[5]==='SIC') type+=' '+arr[5];
+        type=arr[3];
+        if (arr[4]==='PIC'||arr[5]==='SIC') type+=' '+arr[4];
         arr.forEach((str,i)=>{
           if (str==="associated") associated=arr[i+1];
         });
+        if (associated){
+          console.log(associated)
+          console.log(this.records)
+          console.log(this.records.map(e=>e._id))
+        }
         let recordsIndex=-1;
         if (this.records) recordsIndex=this.records.map(e=>e._id).indexOf(associated);
         if (recordsIndex>-1) {

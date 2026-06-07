@@ -258,7 +258,7 @@
       <div ng-repeat="cat in records.tabs track by $index" ng-init="tabIndex=$index">
           <h2 ng-if="records.filterCheck(cat)">{{cat}}</h2>
           <!--Single line entry goes here-->
-          <div ng-if="records.filterCheck(cat)">
+          <div ng-if="records.filterCheck(cat)&&cat!=='CERT'">
             <h4 style="margin-left:20px" ng-click="records.showSLEArray[$index]=!records.showSLEArray[$index]">
               <span ng-if="!records.showSLEArray[$index]">Show Single Line Entry Form <i class="fa-solid fa-plus"></i></span>
               <span ng-if="records.showSLEArray[$index]">Hide Single Line Entry Form <i class="fa-solid fa-minus"></i></span>
