@@ -213,11 +213,15 @@ async function getCollection(collectionName) {
 }
 
 async function updateDocument(collection,docId,data) {
+   if (!docId) docId=Date.now().toString();
    const docRef = firebase_db.collection(collection).doc(docId);
    try {
-     await docRef.update(data);
+     await docRef.set(data, { merge: true });
      console.log('Document successfully updated!');
-     return true;
+     const docSnap = await docRef.get();
+     data = docSnap.data();
+     data._id=docId;
+     return data;
    } catch (error) {
      console.error('Error updating document:', error);
      return false;
@@ -289,10 +293,27 @@ export async function updateFirebase(req,res){
   console.log(req.body)
   let collection=req.body.collection;
   let localDoc=req.body.doc;
-  let id = localDoc._id.toString();
+  let id;
+  if (localDoc._id) id = localDoc._id.toString();
   delete localDoc._id;
   console.log(localDoc)
-  updateDocument(collection, id, localDoc).then(()=>{
-    res.status(200).json('Updated');
+  updateDocument(collection, id, localDoc).then((data)=>{
+    if (data) return res.status(200).json(data);
+    return res.status(500).json('No response from firebase')
   });
+}
+
+export async function deleteFirebase(req,res) {
+  const collection='records';
+  const docId=req.body.id;
+  if (!docId) return res.status(500).json('No ID in this call');
+  try {
+    const docRef = firebase_db.collection(collection).doc(docId);
+    await docRef.delete();
+    return res.status(200).json('Document Deleted');
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Error Trying to Delete from Firestore');
+  }
 }

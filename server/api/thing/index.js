@@ -16,5 +16,6 @@ router.post('/firebaseDoc',controller.firebaseDoc);
 router.post('/firebaseLimited',controller.firebaseLimited);
 router.post('/firebaseQuery',controller.firebaseQuery);
 router.post('/updateFirebase',controller.updateFirebase);
+router.post('/deleteFirebase',controller.deleteFirebase);
 
 module.exports = router;

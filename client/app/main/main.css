@@ -95,7 +95,14 @@
 
 .darkBackground {
   background-color:#90EE90;
-  
+}
+
+.blueBackground {
+  background-color:lightblue;
+}
+
+.approvedBackground {
+  background-color:#ffffcc;
 }
 
 .ui-select-bootstrap .ui-select-choices{

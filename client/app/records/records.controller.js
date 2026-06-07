@@ -27,7 +27,7 @@ class RecordsComponent {
     this.dateString=new Date().toLocaleDateString();
     this.maxHeight=70;
     this.newPilot={};
-    this.approvalEmails=['fen@beringair.com','nathaniel@beringair.com'];
+    this.approvalEmails=['fen@beringair.com','nathaniel@beringair.com','nathanielwkolson@gmail.com','smirciat@gmail.com'];
       this.pilotsOld=[];
       this.months=[];
       var formLabels = ["Basic Indoc", "HAZMAT", "293(b) & 299", "297", "-", "Caravan", "1900", "King Air", "Sky Courier", "CASA"];
@@ -211,7 +211,7 @@ class RecordsComponent {
   }
   
   add(){
-    if (!this.tab||!this.subtab) return this.toaster.error('Error','Need to select a tab before uploading');
+    if ((!this.tab||!this.subtab)&&!this.associated) return this.toaster.error('Error','Need to select a tab before uploading');
     if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
       if (!this.seat) return this.toaster.error('Error','Need to select PIC or SIC for this aircraft');
     }
@@ -220,86 +220,38 @@ class RecordsComponent {
     let files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
       let f=files[0];
-        this.timeframe=0;
-        this.expKey=undefined;
-        this.expKeyAlt=undefined;
-        let filename=this.setFilename(f.name);
-        //if (!confirm('Confirm uploading file ' + filename+ ' for ' + this.pilot.name)) return;
+      //for of loop if multiple uploads of this file
+      let tabArray=[];
+      if (this.associated) {
+        this.associated.trainingTypeArray.forEach(type=>{
+          const sub=this.associated.trainingType.charAt(0).toUpperCase() + this.associated.trainingType.slice(1).toLowerCase();
+          const {tab,seat}=this.typeToTab(type);
+          tabArray.push({tab:tab,sub:sub,seat:seat});
+        });
+      }
+      else tabArray=[{tab:this.tab,sub:this.subtab,seat:this.seat}];
+      for (const [index,obj] of tabArray.entries()) {
+        let x=0;
+        let filename=this.setFilename(f.name,obj);
         let r = new FileReader();
         r.onloadend = e=>{
           this.http.post('/api/raws/uploadRecord',{data:btoa(e.target.result),filename:filename}).then(res=>{
             //update training exp date in accordance with new upload, checking for errors and alerting of the changes
-            //get exp timeframe and field name
-            this.setExp();
-            //this.timeframe and this.expKey are set
-            //if this timeframe and its not zero, update the pilot record exp date
-            //prevent this from running for now, this will be in another section
-            //if (this.timeframe&&this.expKey) {
-            if (false) {
-              //find existing exp date, if rebasing
-              let date=new Date(this.date);
-              let existingDate;
-              let dateexists=this.fullPilot[this.expKey];
-              if (dateexists) existingDate=new Date(dateexists);
-              //if early or late grace, and rebase is false
-              if (this.isWithinOneMonth(date,existingDate)) {
-                if (!this.rebase) date=existingDate;
-                if (!confirm('Are you sure you want to create a new base month?  It appears you are within the window.')) {
-                  this.toaster.error('Error','File upload successful, but expiration date not updated');
-                  this.init();
-                  return;
-                }
-              }
-              else {
-                if (!this.rebase&&dateexists) {
-                  this.toaster.error('Error','You are not within the window for this event, you will have to rebase to save a new Exp date. File upload successful, but expiration date not updated');
-                  this.init();
-                  return;
-                }
-              }
-              
-              let newDate = new Date(new Date(date).setMonth(date.getMonth() + this.timeframe));
-              if (newDate<existingDate) {
-                console.log(existingDate);
-                console.log(newDate);
-                this.toaster.error('Error','New expiration date should not be earlier than the existing one! File upload successful, but expiration date not updated');
+            if (this.subtab==='Medical') {
+              let doc={_id:this.pilot._id};
+              doc.medicalDate = this.dateString;
+              this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
+                this.fullPilot.medicalDate = this.dateString;
+                let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
+                if (index>-1) Object.assign(this.pilots[index], ...doc );
+                this.toaster.success('Success','medical updated to ' + this.dateString);
                 this.init();
-                return;
-              }
-              if (confirm('Update expiration for ' + this.expKey + ' to ' + newDate.toLocaleDateString() + '?')){
-                let doc={_id:this.pilot._id};
-                doc[this.expKey] = newDate.toLocaleDateString();
-                if (this.expKeyAlt) doc[this.expKeyAlt] = newDate.toLocaleDateString();
-                this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
-                  this.fullPilot[this.expKey] = newDate.toLocaleDateString();
-                  let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-                  if (index>-1) Object.assign(this.pilots[index], ...doc );
-                  this.init();
-                }).catch(err=>{console.log(err)});
-              }
-              else {
-                this.toaster.error('Error','File upload successful, but expiration date not updated');
-                this.init();
-                return;
-              }
+              }).catch(err=>{console.log(err)});
             }
             else {
-              if (this.subtab==='Medical') {
-                let doc={_id:this.pilot._id};
-                doc.medicalDate = this.dateString;
-                this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
-                  this.fullPilot.medicalDate = this.dateString;
-                  let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-                  if (index>-1) Object.assign(this.pilots[index], ...doc );
-                  this.toaster.success('Success','medical updated to ' + this.dateString);
-                  this.init();
-                }).catch(err=>{console.log(err)});
-              }
-              else {
-                this.timeout(()=>{
-                  this.init();
-                },500);
-              }
+              this.timeout(()=>{
+                if (index>=tabArray.length-1) this.init();
+              },1000);
             }
             let d=document.getElementById('file');
             //if this fires, it will clear the selected file to prevent repeated uploads, disabled for now
@@ -310,9 +262,153 @@ class RecordsComponent {
           });
         };
         r.readAsBinaryString(f);
-      
+        x++;
+      }
     }
     else this.toaster.error('Error','Need to finish adding the file first');
+  }
+  
+  updateExp(record){
+    //this is now coming from a record
+    if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return;
+    record.trainingTypeArray.forEach(type=>{
+      //convert type to tab
+      const {tab,seat}=this.typeToTab(type);
+      if (!tab) return;
+      //get exp timeframe and field name
+      const {expKey,expKeyAlt,timeframe} = this.setExp(tab,seat);
+      //timeframe and expKey are set
+      //if this timeframe and its not zero, update the pilot record exp date
+      if (timeframe&&expKey) {
+        //find existing exp date, if rebasing
+        let date=new Date(record.date);
+        let existingDate;
+        let dateexists=this.fullPilot[expKey];
+        if (dateexists) existingDate=new Date(dateexists);
+        //if early or late grace, and rebase is false
+        if (this.isWithinOneMonth(date,existingDate)) {
+          if (!record.newBaseMonth||record.newBaseMonth==='false') date=existingDate;
+          if (!confirm('Are you sure you want to create a new base month?  It appears you are within the window.')) {
+            this.toaster.error('Error','Expiration date not updated');
+            //this.init();
+            return;
+          }
+        }
+        else {
+          if ((!record.newBaseMonth||record.newBaseMonth==='false')&&dateexists) {
+            this.toaster.error('Error','You are not within the window for this event, you will have to rebase to save a new Exp date. Expiration date not updated');
+            //this.init();
+            return;
+          }
+        }
+        
+        let newDate = new Date(new Date(date).setMonth(date.getMonth() + timeframe));
+        if (newDate<existingDate) {
+          console.log(existingDate);
+          console.log(newDate);
+          this.toaster.error('Error','New expiration date should not be earlier than the existing one! Expiration date not updated');
+          //this.init();
+          return;
+        }
+        if (confirm('Update expiration for ' + expKey + ' to ' + newDate.toLocaleDateString() + '?')){
+          let doc={_id:this.pilot._id};
+          doc[expKey] = newDate.toLocaleDateString();
+          if (expKeyAlt) doc[expKeyAlt] = newDate.toLocaleDateString();
+          this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
+            this.fullPilot[expKey] = newDate.toLocaleDateString();
+            let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
+            if (index>-1) Object.assign(this.pilots[index], ...doc );
+            //this.init();
+          }).catch(err=>{console.log(err)});
+        }
+        else {
+          this.toaster.error('Error','expiration date not updated');
+          //this.init();
+          return;
+        }
+      }
+    });
+  }
+  
+  typeToTab(type){
+    //['BasicIndoc','Hazmat','far299','far297','far297g','C208PIC','C208TKS','C208Ground','B190PIC','B190SIC','B190Ground','BE20PIC','BE20Ground','C408PIC','C408SIC','C408Ground','C212PIC','C212SIC','C212Ground','CheckAirmanObs','FlightInstructorObs']
+    //['CERT','BI','HAZ','INTL','C208G','C408G','C212G','BE20G','B190G','RVSM','293A','C208','C408','C212','BE20','B190','297','297g','299','244','CFIT','FLT-INSTRUCTOR','CHECK-AIRMAN','OTHER-RECORDS'];
+    let tab,seat;
+    switch (type) {
+      case 'FlightInstructorObs':
+        tab="FLT-INSTRUCTOR";
+        break;
+      case 'CheckAirmanObs':
+        tab="CHECK-AIRMAN";
+        break;
+      case 'C212Ground':
+        tab="C212G";
+        break;
+      case 'C212PIC':
+        tab="C212";
+        seat="PIC";
+        break;
+      case 'C212SIC':
+        tab="C212";
+        seat="SIC";
+        break;
+      case 'C408Ground':
+        tab="C408G";
+        break;
+      case 'C408SIC':
+        tab="C408";
+        seat="SIC";
+        break;
+      case 'C408PIC':
+        tab="C408";
+        seat="PIC";
+        break;
+      case 'BE20Ground':
+        tab="BE20G";
+        break;
+      case 'BE20PIC':
+        tab="BE20";
+        break;
+      case 'B190Ground':
+        tab="B190G";
+        break;
+      case 'B190SIC':
+        tab="B190";
+        seat="SIC";
+        break;
+      case 'B190PIC':
+        tab="B190";
+        seat="PIC";
+        break;
+      case 'C208Ground':
+        tab="C208G";
+        break;
+      case 'C208TKS':
+        tab="OTHER-RECORDS";
+        break;
+      case 'BasicIndoc':
+        tab="BI";
+        break;
+      case 'Hazmat':
+        tab="HAZ";
+        break;
+      case 'far299':
+        tab="299";
+        break;
+      case 'far297':
+        tab="297";
+        break;
+      case 'far297g':
+        tab="297g";
+        break;
+      case 'C208PIC':
+        tab="C208";
+        break;
+      default:
+        tab=type;
+        break;
+    }
+    return {tab:tab,seat:seat};
   }
   
   isWithinOneMonth(testDate, refDate) {
@@ -331,89 +427,96 @@ class RecordsComponent {
     return testDate >= lowerBound && testDate <= upperBound;
 }
   
-  setFilename(filename){
+  setFilename(filename,obj){
     let fn='';
-    fn=this.pilot._id+'_'+this.formatDate(this.dateString)+'_'+this.tab+'_';
-    if (this.subtab) fn+=this.subtab+'_';
-    if (this.seat) fn+=this.seat+'_';
+    let date=this.dateString;
+    if (this.associated) date=this.associated.date;
+    fn=this.pilot._id+'_'+this.formatDate(date)+'_'+obj.tab+'_';
+    if (obj.sub) fn+=obj.sub+'_';
+    if (obj.seat) fn+=obj.seat+'_';
+    if (this.associated) fn+='associated_'+this.associated._id+'_';
     fn+=filename;
     return fn;
   }
   
-  setExp(){
-    switch (this.tab) {
+  setExp(tab,seat){
+    if (!seat) seat="PIC";
+    if (!tab) return {};
+    let timeframe,expKey,expKeyAlt;
+    switch (tab) {
       case 'CERT':
-        this.timeframe=0;
+        timeframe=0;
         break;
       case 'HAZMAT':
-        this.timeframe=24;
+        timeframe=24;
         break;
       case 'INTL':
-        this.timeframe=0;
+        timeframe=0;
         break;
       case '297':
-        this.timeframe=6;
+        timeframe=6;
         break;
       case 'RVSM':
-        this.timeframe=0;
+        timeframe=0;
         break;
       case '244':
-        this.timeframe=0;
+        timeframe=0;
         break;
       case 'CFIT':
-        this.timeframe=0;
+        timeframe=0;
         break;
       case 'FLT-INSTRUCTOR':
-        this.timeframe=24;
+        timeframe=24;
         break;
       case 'CHECK-AIRMAN':
-        this.timeframe=24;
+        timeframe=24;
         break;
       case 'OTHER-RECORDS':
-        this.timeframe=12;
+        timeframe=12;
         break;
       default:
-        this.timeframe=12;
+        timeframe=12;
         break;
     }
-    this.expKey='';
-    this.expExtraKeys=[];
-    if (this.timeframe===0) {
+    expKey='';
+    if (timeframe===0) {
       return;
     }
-    switch (this.tab) {
+    switch (tab) {
       case 'BI':
-        this.expKey='BasicIndocExp';
+        expKey='BasicIndocExp';
+        expKeyAlt='far293a148';
         break;
       case 'HAZ':
-        this.expKey='HazmatExp';
+        expKey='HazmatExp';
         break;
       case 'FLT-INSTRUCTOR':
-        this.expKey='FlightInstructorObsExp';
+        expKey='FlightInstructorObsExp';
         break;
       case 'CHECK-AIRMAN':
-        this.expKey='CheckAirmanObsExp';
+        expKey='CheckAirmanObsExp';
         break;
       case 'OTHER-RECORDS':
-        this.expKey='C208TKSExp';
+        expKey='C208TKSExp';
         break;
       default:  
-        if (/^\d/.test(this.tab)) {
+        if (/^\d/.test(tab)) {
           //first character is an integer
-          this.expKey='far' + this.tab + 'Exp';
+          expKey='far' + tab + 'Exp';
           break;
         }
-        if (this.tab.at(-1)==="G") {
+        if (tab.at(-1)==="G") {
           //All the ground currency tabs
-          this.expKey=this.tab+'roundExp';
-          this.expKeyAlt=this.tab+'OSExp';
+          expKey=tab+'roundExp';
+          expKeyAlt=tab+'OSExp';
           break;
         }
-        if (this.tab.substring(0,1)==="C"||this.tab.substring(0,1)==="B") {
-          this.expKey=this.tab + this.seat + 'Exp';
+        if (tab.substring(0,1)==="C"||tab.substring(0,1)==="B") {
+          expKey=tab + seat + 'Exp';
           break;
         }
     }
+    return {timeframe:timeframe,expKey:expKey,expKeyAlt:expKeyAlt};
   }
   
   getPilotsFiles(){
@@ -472,10 +575,6 @@ class RecordsComponent {
     }).catch(err=>{console.log(err)});
   }
   
-  seatRequired(cat){
-    return cat==="B190"||cat==="C212"||cat==="C408";
-  }
-  
   seatArray(cat){
     if (cat==="B190"||cat==="C212"||cat==="C408") return ['PIC','SIC'];
     return [null];
@@ -486,47 +585,32 @@ class RecordsComponent {
     return array.length>0;
   }
   
-  filterForSeat(cat,sub,seat){
-    let files=this.fullFiles.filter(file=>{
-      let arr=file.filename.split('_');
-      if (seat) {
-        if (arr[4]!=="PIC") arr[4]="SIC";
-        return arr[2]===cat&&arr[3]===sub&&arr[4]===seat;
-      }
-      if (sub) {
-        return arr[2]===cat&&arr[3]===sub;
-      }
-      return arr[2]===cat;
-    });
-    return files.length>0;
-  }
-  
-  filterForSub(cat,sub){
-    let files=this.fullFiles.filter(file=>{
-      let arr=file.filename.split('_');
-      return arr[2]===cat&&arr[3]===sub;
-    });
-    return files.length>0;
-  }
-  
-  filterForCat(cat){
-    let files=this.fullFiles.filter(file=>{
-      let arr=file.filename.split('_');
-      return arr[2]===cat;
-    });
-    return files.length>0;
-  }
-  
-  update(record){
+  update(record,index){
+    if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return alert('You Need to Select at least one training type before saving');
     //create or update record in firebase, if it was a new record, unshift a new new one
+    this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
+      this.records[index]=res.data;
+      if (this.records[0]._id) this.records.unshift({name:this.fullPilot.name,pilotNumber:this.fullPilot._id.toString(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
+    });
   }
   
-  approve(record){
+  approve(record,index){
+    if (!record._id) return alert('You Need to Save it Before Approving it');
     //update in firebase and update relevant exp date
+    record.approved=true;
+    this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
+      this.records[index]=res.data;
+      this.updateExp(record);
+    });
   }
   
-  delete(record){
+  delete(record,index){
+    if (!record._id) return alert('No ID associated with this record, nothing to delete in Firestore');
     //remove record from firebase and update local array
+    this.http.post('/api/things/deleteFirebase',{id:record._id}).then(res=>{
+      this.records.splice(index,1);
+    })
+    .catch(err=>{console.log(err)});
   }
   
   isItDisabled(button){
@@ -539,10 +623,9 @@ class RecordsComponent {
   }
   
   newRecordClass(record){
-    if (!record._id) {
-      return "darkBackground";
-    }
-    return "";
+    if (!record._id) return "darkBackground";
+    if (!record.approved) return "blueBackground";
+    return "approvedBackground";
   }
   
   displayArray(record){
@@ -586,6 +669,15 @@ class RecordsComponent {
 }
 
 angular.module('rotApp')
+  .filter('recordFilter',()=>{
+    return function(input, showApproved) {
+      if (!input||!Array.isArray(input)) return [];
+      if (showApproved) return input;
+      return input.filter(record=>{
+        return !record.approved;
+      });
+    };
+  })
   .filter('categoryFilter',()=>{
     return function(input, cat, sub, seat) {
       if (!input||!Array.isArray(input)) return [];
