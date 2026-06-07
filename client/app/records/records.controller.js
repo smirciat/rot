@@ -3,7 +3,9 @@
 (function(){
 
 class RecordsComponent {
-  constructor($scope,$timeout,$interval,$http,toaster) {
+  constructor($scope,$timeout,$interval,$http,toaster,appConfig,Modal) {
+    this.appConfig=appConfig;
+    this.Modal=Modal;
     this.http=$http;
     this.timeout=$timeout;
     this.interval=$interval;
@@ -23,6 +25,72 @@ class RecordsComponent {
     this.tab='CERT';
     this.dateString=new Date().toLocaleDateString();
     this.maxHeight=70;
+    this.newPilot={};
+    this.approvalEmails=['fen@beringair.com','nathaniel@beringair.com'];
+      this.pilotsOld=[];
+      this.months=[];
+      var formLabels = ["Basic Indoc", "HAZMAT", "293(b) & 299", "297", "-", "Caravan", "1900", "King Air", "Sky Courier", "CASA"];
+      this.suffices = ['baseIndoc','baseHazmat','base293','base297','-','base208','base1900','baseKingAir','base408','baseCasa'];
+      this.trainingTypes=['none','initial','recurrent', 'transition', 'upgrade', 'requalification'];
+      //['none','initial flight','initial ground','recurrent flight','recurrent ground','transition flight','transition ground','upgrade flight','upgrade ground','requalification flight','requalification ground'];
+      this.types=['none','BasicIndoc','Hazmat','far299','far297','far297g','C208','B190','BE20','C408','C212'];
+      this.instructors=['new','Kyle Lefebvre','Nick Hajdukovich','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans','Michael K. Evans','Andy Smircich','Neill Toelle','Josh Krebiehl','Tim Kunkel','Frank Parker','Tim Hopley','Scott Gordon'];
+      this.formTypes=[];
+      for (var i=0;i<formLabels.length;i++) {
+        this.formTypes.push({label:formLabels[i],suffix:this.suffices[i],radio:false,id:i});
+      }
+      for (var i=1;i<13;i++){
+        this.months.push(new Date(i + '/15/2020').toLocaleString('default', { month: 'long' }));
+      }
+      this.quickModal = this.Modal.confirm.quickMessage(response => {
+      
+      }); 
+      this.radioModal = this.Modal.confirm.radio(formData => {
+        //select training types
+        let recordIndex = 0;
+        if (formData._id) recordIndex= this.records.map(e => e._id).indexOf(formData._id);
+        Object.assign(this.records[recordIndex],...formData);
+        this.records[recordIndex].trainingTypeArray=[];
+        for (let key in this.records[recordIndex]) {
+          if (this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
+            this.records[recordIndex][key]="true";
+            this.records[recordIndex].trainingTypeArray.push(key);
+            if (key!=='far297'){
+              let expKey=key+'Exp';
+              //find pilot record
+              let pilotIndex = this.pilots.map(e => e.name).indexOf(this.records[recordIndex].name);
+              if (pilotIndex>-1&&this.pilots[pilotIndex][expKey]) {
+                let newMonth=new Date(this.pilots[pilotIndex][expKey]).toLocaleString('default', { month: 'long' });
+                if (this.months.indexOf(newMonth)>-1) this.records[recordIndex].baseMonth=newMonth;
+              }
+            }
+          }
+          if (!this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
+            this.records[recordIndex][key]="false";
+          }
+        }
+      });
+      this.pilotModal = this.Modal.confirm.pilotData(formData =>{
+        console.log(formData);
+        if (!formData||!formData.name) {
+          console.log('got this far');
+          this.quickModal("Try again to enter the pilot data");
+          return;
+        }
+        //formData is this pilot data
+        if (formData._id) {
+          this.loading=false;
+          //this.updateRecord('pilots',formData).then(res=>{
+            //this.loading=false;
+          //});
+          //let pilotIndex = this.pilots.map(e => e._id).indexOf(formData._id);
+          //this.pilots[pilotIndex]=JSON.parse(JSON.stringify(formData));
+        }
+        let recordIndex = this.records.map(e => e._id).indexOf(this.recordId);
+        this.records[recordIndex].pilotNumber=formData._id.toString();
+        //formData._id=this.recordId;
+        //Object.assign(this.records[recordIndex],...formData);
+      });
   }
   
   $onInit(){
@@ -46,23 +114,19 @@ class RecordsComponent {
         this.subtab=undefined;
         this.seat=undefined;
       }
-    }); 
-    //this.myInterval=this.interval(()=>{
-      //let fileWatch;
-      //let d=document.getElementById('file');
-      //if (d&&d.files) fileWatch=Array.from(d.files);
-      //if (fileWatch&&fileWatch.length>0) this.add();
-    //},1000);
+    });
     this.http.post('/api/things/firebase',{collection:'pilots'}).then(res=>{
       this.pilots=res.data;
       this.init();
     });
+    
   }
   
   init(){
     this.flights=[];
     this.timeframe=0;
     this.expKey='';
+    this.associated=undefined;
     let p={};
     if (this.pilots) p=this.pilots.filter(p=>p.displayName===this.queryObj.value)[0];
     else return;
@@ -79,6 +143,11 @@ class RecordsComponent {
       let list=JSON.parse(res.data);
       this.files=list.filter(file=>file.startsWith(this.pilot._id.toString()));
       this.getPilotsFiles();
+    });
+    //get records from api for this pilot
+    this.http.post('/api/things/firebaseQuery',{collection:'records',parameter:'pilotNumber',value:this.pilot._id.toString()}).then(res=>{
+      this.records=res.data;
+      this.refreshRecords();
     });
   }
   
@@ -163,7 +232,9 @@ class RecordsComponent {
             this.setExp();
             //this.timeframe and this.expKey are set
             //if this timeframe and its not zero, update the pilot record exp date
-            if (this.timeframe&&this.expKey) {
+            //prevent this from running for now, this will be in another section
+            //if (this.timeframe&&this.expKey) {
+            if (false) {
               //find existing exp date, if rebasing
               let date=new Date(this.date);
               let existingDate;
@@ -230,6 +301,7 @@ class RecordsComponent {
               }
             }
             let d=document.getElementById('file');
+            //if this fires, it will clear the selected file to prevent repeated uploads, disabled for now
             //if (d) d.value='';
           }).catch(err=>{
             console.log(err);
@@ -262,6 +334,7 @@ class RecordsComponent {
     let fn='';
     fn=this.pilot._id+'_'+this.formatDate(this.dateString)+'_'+this.tab+'_';
     if (this.subtab) fn+=this.subtab+'_';
+    if (this.seat) fn+=this.seat+'_';
     fn+=filename;
     return fn;
   }
@@ -398,6 +471,30 @@ class RecordsComponent {
     }).catch(err=>{console.log(err)});
   }
   
+  seatRequired(cat){
+    return cat==="B190"||cat==="C212"||cat==="C408";
+  }
+  
+  seatArray(cat){
+    if (cat==="B190"||cat==="C212"||cat==="C408") return ['PIC','SIC'];
+    return [null];
+  }
+  
+  filterForSeat(cat,sub,seat){
+    let files=this.fullFiles.filter(file=>{
+      let arr=file.filename.split('_');
+      if (seat) {
+        if (arr[4]!=="PIC") arr[4]="SIC";
+        return arr[2]===cat&&arr[3]===sub&&arr[4]===seat;
+      }
+      if (sub) {
+        return arr[2]===cat&&arr[3]===sub;
+      }
+      return arr[2]===cat;
+    });
+    return files.length>0;
+  }
+  
   filterForSub(cat,sub){
     let files=this.fullFiles.filter(file=>{
       let arr=file.filename.split('_');
@@ -413,18 +510,94 @@ class RecordsComponent {
     });
     return files.length>0;
   }
+  
+  update(record){
+    //create or update record in firebase, if it was a new record, unshift a new new one
+  }
+  
+  approve(record){
+    //update in firebase and update relevant exp date
+  }
+  
+  delete(record){
+    //remove record from firebase and update local array
+  }
+  
+  isItDisabled(button){
+    if (button&&button==='approve'){
+      if (window.user&&this.approvalEmails.indexOf(window.user.email)>-1) {
+        return false;
+      }
+      else return true;
+    }
+  }
+  
+  newRecordClass(record){
+    if (!record._id) {
+      return "darkBackground";
+    }
+    return "";
+  }
+  
+  displayArray(record){
+    if (!record) return "No Type Selected";
+    let result="";
+    if (record.trainingTypeArray&&record.trainingTypeArray.length>0) {
+      record.trainingTypeArray.forEach((type,index)=>{
+        if (index>0) result+=", ";
+        result+=type;
+      });
+    }
+    else return "No Type Selected";
+    return result;
+  }
+  
+  refreshRecords(){
+    this.records.forEach(record=>{
+      if (this.fullPilot&&this.fullPilot._id){
+        if (!record.dateOfBirth) record.dateOfBirth=this.fullPilot.dateOfBirth;
+        if (!record.medicalDate) record.medicalDate=this.fullPilot.medicalDate;
+        if (!record.medicalClass) record.medicalClass=this.fullPilot.medicalClass;
+        if (!record.cert) record.cert=this.fullPilot.cert;
+        if (!record.certType) record.certType=this.fullPilot.certType;
+        if (!record.name) record.name=this.fullPilot.name;
+        record.trainingTypeCombo=record.trainingType + ' ' + record.flightOrGround;
+        record.trainingTypeArray=[];
+        this.appConfig.trainingEventKeys.forEach(key=>{
+          if (record[key]&&record[key]==="true") {
+            if (key.slice(0,3)==="far") key=key.substring(3);
+            record.trainingTypeArray.push(key);
+          }
+        });
+      }
+    });
+    this.records.sort((a,b)=>{
+      return new Date(b.date) - new Date(a.date);
+    });
+    this.records.unshift({name:this.fullPilot.name,pilotNumber:this.fullPilot._id.toString(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
+    //this.scope.$apply();
+  }
 }
 
 angular.module('rotApp')
   .filter('categoryFilter',()=>{
-    return function(input, cat, subIndex) {
+    return function(input, cat, sub, seat) {
       if (!input) return input;
-      let subs=window.subtabs;
-      if (cat==="CERT") subs=window.categories;
-      let sub=subs[subIndex];
+      //let subs=window.subtabs;
+      //if (cat==="CERT") subs=window.categories;
+      //let sub=subs[subIndex];
+      
+      if (!seat) {
+        return input.filter(item => {
+          let arr=item.filename.split('_');
+          return arr[2]===cat&&arr[3]===sub;
+        });
+      }
+      
       return input.filter(item => {
         let arr=item.filename.split('_');
-        return arr[2]===cat&&arr[3]===sub;
+        if (arr[4]!=="PIC") arr[4]="SIC";
+        return arr[2]===cat&&arr[3]===sub&&arr[4]===seat;
       });
     };
   })

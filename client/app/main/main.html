@@ -8,7 +8,7 @@
   <input class="form-control" type="password" id="password1" name="password1" ng-model="main.password" ng-keypress="main.keypress($event)"/>
   <label for="password1">Firebase Password</label>
   <br><br>
-  <button class="btn btn-success" ng-click="main.signInFirebase()"><span ng-if="main.clicked" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Click to Login Firebase</button>
+  <button class="btn btn-success" ng-click="main.signInFirebase(true)"><span ng-if="main.clicked" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Click to Login Firebase</button>
   <br><br>
   <button class="btn btn-danger" ng-click="main.sendPasswordReset()"><span ng-if="main.resetClicked" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Reset Firebase Password</button>
 </div>
@@ -35,37 +35,7 @@
           </thead>
           <tbody>
             <tr ng-repeat="record in main.records track by $index" ng-init="recordIndex=$index" ng-class="main.newRecordClass(record)">
-                <!--<td>
-                  <div class="dropdown">
-                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                      Base Month
-                      <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                        <li ng-repeat="form in main.formTypes" ng-attr-role="{'separator' : form.id == 4}" ng-init="formIndex=$index"
-                               ng-class="{'divider' : form.id == 4}" class="dropdown-submenu" onclick="event.stopPropagation();"
-                               id="{{'listItem'+ recordIndex + formIndex}}">
-                          <input type="checkbox" id="{{'radioSelect' + form.id}}" ng-model="form.radio" ng-change="main.radioChange(recordIndex,formIndex,form.radio)">
-                          <label for="{{'radioSelect' + form.id}}">{{form.label}}</label>
-                          <ul class="dropdown-menu">
-                            <li onclick="event.stopPropagation();">
-                              <ui-select ng-model="main.tempBases[recordIndex][form.id].month" theme="bootstrap" close-on-select="true" on-select="main.onSelect($item,recordIndex,formIndex)">
-                                <ui-select-match placeholder="Select a month in the list...">{{$select.selected}}</ui-select-match>
-                                <ui-select-choices repeat="item in main.months | filter: $select.search">
-                                  <div ng-bind-html="item | highlight: $select.search"></div>
-                                </ui-select-choices>
-                              </ui-select>
-                            </li>
-                          </ul>
-                        </li>
-                    </ul>
-                  </div>
-                </td>-->
-                <!--<td><input class="form-control" ng-model="record.medicalClass" type="text"></td>
-                <td><input class="form-control" type="text" ng-model="record.medicalDate" ng-blur="main.medBlur(record._id)"></td>
-                <td><input class="form-control" type="text" ng-model="record.dateOfBirth" ng-blur="main.dobBlur(record._id)"></td>
-                <td><input class="form-control" ng-model="record.certType" type="text"></td>
-                <td><input class="form-control" ng-model="record.cert" type="text"></td>-->
+                
                 <td>
                   <button class="btn btn-primary" ng-class="main.isItDisabled()" ng-click="main.pdf(record,'ROT')">
                     <span ng-if="main.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>

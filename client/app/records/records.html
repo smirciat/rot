@@ -7,6 +7,16 @@
       <input class="form-control" style="width:800px;" type="file" id="file" name="file" />
       <br>
       <div class="points-row">
+          <h5>Select Training Record Associated with this Upload</h5>
+          <ui-select ng-model="records.associated" theme="bootstrap" dropdown-position="down" style="width: 30em !important;">
+            <ui-select-match placeholder="Choose Tab">{{$select.selected.date + ' - ' + records.displayArray($select.selected) }}</ui-select-match>
+            <ui-select-choices repeat="item in records.records" >
+              <div ng-bind-html="item.date + ' - ' + records.displayArray(item) | highlight: $select.search"></div>
+            </ui-select-choices>
+          </ui-select>
+          <h5>OR:</h5>
+      </div>
+      <div class="points-row">
           <h5>Select Tab of File From List</h5>
           <ui-select ng-model="records.tab" theme="bootstrap" dropdown-position="down">
             <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
@@ -27,6 +37,8 @@
               <div ng-bind-html="item | highlight: $select.search"></div>
             </ui-select-choices>
           </ui-select>
+        </div>
+        <div class="points-row">
           <h5>Document Date</h5>
           <!--<textarea rows="1" ng-model="records.dateString"></textarea>-->
           <div style="padding-left:0px;padding-top:0px" class="input-group">
@@ -41,12 +53,108 @@
                is-open="records.isDatepickerOpen" datepicker-options="records.datepickerOptions" ng-required="true" close-text="Close" 
                alt-input-formats="altInputFormats"/>
           </div>
-          <h5>New Base Month?</h5>
-          <input type="checkbox" ng-model="records.rebase" class="f6Input">
+          <!--<h5>New Base Month?</h5>
+          <input type="checkbox" ng-model="records.rebase" class="f6Input">-->
           <button class="btn btn-success" ng-click="records.add()">Upload File(s)</button>
       </div>
   </div>
   <hr>
+  
+  <div style="width:90%;margin:auto;">
+    <h2 ng-click="records.showTable=!records.showTable">Enter, Edit, Approve Records (Click to Expand)  &nbsp 
+      <span ng-if="records.showTable">
+        <i class="fa-solid fa-square-caret-up"></i>
+      </span>
+      <span ng-if="!records.showTable">
+        <i class="fa-solid fa-square-caret-down"></i>
+      </span>
+    </h2>
+  </div>
+  <div flex layout="row" id="content" ng-if="records.showTable">
+    <div flex layout="column">
+     <md-content flex class="space">
+        <table flex class="table table-responsive table-bordered">
+          <thead>    
+            <tr>
+                <!--<th></th>
+                <th></th>
+                <th></th>-->
+                <th>Pilot</th>
+                <th>Emp#</th>
+                <th>Date</th>
+                <th>Initial/Recurrent</th>
+                <th>Type</th>
+                <th>Base Month</th>
+                <th>New Base</th>
+                <th>Instructor</th>
+                <th>CheckAriman</th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="record in records.records track by $index" ng-init="recordIndex=$index" ng-class="records.newRecordClass(record)">
+                
+                <!--<td>
+                  <button class="btn btn-primary" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'ROT')">
+                    <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                    ROT
+                  </button>
+                </td>
+                <td><button class="btn btn-warning" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTest')"><span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Flight Test</button></td>
+                <td><button class="btn btn-success" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTestINDOC')"><span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>INDOC</button></td>-->                <!--<td><input class="form-control" ng-model="record.name" type="text" ng-click="records.showPilotModal(record.pilotNumber,record)"></td>-->
+                <td style="padding-top:15px;">{{record.name}}</td>
+                <!--<td><input class="form-control" ng-model="record.pilotNumber" type="text" ng-blur="records.fillPilotData(record,recordIndex)"><!-- style="width:70px;"></td>-->
+                <td style="padding-top:15px;">{{record.pilotNumber}}</td>
+                <td><input class="form-control" ng-model="record.date" type="text" ng-blur="records.checkDate(record)"></td>
+                
+                <td><ui-select ng-model="record.trainingType" theme="bootstrap" ng-disabled="disabled"><!--ng-change="records.trainingType(record)">-->
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="combo in records.trainingTypes" >
+                    <div ng-bind-html="combo | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-click="records.radioModal(record)" style="padding-top:15px;">
+                  <p tooltip-placement="auto" uib-tooltip="Click to Edit">{{records.displayArray(record)}}</p>
+                </td>
+                <td><ui-select ng-model="record.baseMonth" theme="bootstrap" ng-disabled="disabled">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="month in records.months" >
+                    <div ng-bind-html="month | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td><ui-select ng-model="record.newBaseMonth" theme="bootstrap" ng-disabled="disabled">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="choice in ['true','false']" >
+                    <div ng-bind-html="choice | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-hide="record.newinstructor"><ui-select ng-model="record.instructor" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('instructor',record)">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="instructor in records.instructors" >
+                    <div ng-bind-html="instructor | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-show="record.newinstructor"><input class="form-control" ng-model="record.instructor" type="text"></td>
+                <td ng-hide="record.newcheckAirman"><ui-select ng-model="record.checkAirman" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('checkAirman',record)">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="instructor in records.instructors" >
+                    <div ng-bind-html="instructor | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td ng-show="record.newcheckAirman"><input class="form-control" ng-model="record.checkAirman" type="text"></td>
+                <td><button class="btn btn-success" ng-disabled="records.isItDisabled()" ng-click="records.update(record)">Save</button></td>
+                <td><button class="btn btn-warning" ng-disabled="records.isItDisabled('approve')" ng-click="records.approve(record)">Approve</button></td>
+                <td><button class="btn btn-danger" ng-disabled="records.isItDisabled()" ng-click="records.delete(record)">Delete</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </md-content>
+    </div>
+  </div>
+  <hr ng-if="records.showTable">
+  
   <div style="width:90%;margin:auto;">
       <h2 ng-click="records.collapse=!records.collapse">Pilot Duty Assignment/Qualification &nbsp 
         <span ng-if="!records.collapse">
@@ -144,21 +252,26 @@
   <hr>
   <div style="width:90%;margin:auto;">
       <div ng-repeat="cat in records.tabs">
-          <h2 ng-if="records.filterForCat(cat)">{{cat}}</h2>
-          <div ng-repeat="sub in records.whichSubs(cat) track by $index">
-            <h4 style="margin-left:20px" ng-if="records.filterForSub(cat,sub)">{{sub}}</h4>
-            <div ng-repeat="file in records.fullFiles | categoryFilter:cat:$index | orderBy:'-date' " class="points-row">
-              <div>
-                <a href="{{file.urlMain}}" target="_blank" ng-mouseenter="file.isPreviewVisible=true" ng-mouseleave="file.isPreviewVisible=false">
-                    <thumbnail file-type="{{file.type}}" source="{{file.urlMain}}" img-url="file.url" max-height="{{file.maxHeight}}" max-width="300"></thumbnail>
-                </a>
-                <div ng-if="file.isPreviewVisible" class="pdf-tooltip">
-                    <iframe ng-src="{{ file.urlMain  + '#navpanes=0' | trusted }}" style="height:100vh;width:80vw;" type="application/pdf"></iframe>
+          <h2 ng-if="records.filterForSeat(cat)">{{cat}}</h2>
+          <div ng-repeat="sub in records.whichSubs(cat) track by $index" ng-init="subIndex = $index">
+            <h4 style="margin-left:20px" ng-if="records.filterForSeat(cat,sub)">{{sub}}</h4>
+            <div ng-repeat="seat in records.seatArray(cat)">
+              <h5 style="margin-left:40px" ng-if="records.filterForSeat(cat,sub,seat)">{{seat}}</h5>
+            
+              <div ng-repeat="file in records.fullFiles | categoryFilter:cat:sub:seat | orderBy:'-date' " class="points-row">
+                <div>
+                  <a href="{{file.urlMain}}" target="_blank" ng-mouseenter="file.isPreviewVisible=true" ng-mouseleave="file.isPreviewVisible=false">
+                      <thumbnail file-type="{{file.type}}" source="{{file.urlMain}}" img-url="file.url" max-height="{{file.maxHeight}}" max-width="300"></thumbnail>
+                  </a>
+                  <div ng-if="file.isPreviewVisible" class="pdf-tooltip">
+                      <iframe ng-src="{{ file.urlMain  + '#navpanes=0' | trusted }}" style="height:100vh;width:80vw;" type="application/pdf"></iframe>
+                  </div>
                 </div>
+                <h5>{{records.getDate(file.filename)}}&nbsp{{file.filename}}&nbsp</h5>
+                <button class="btn btn-primary" ng-click="records.downloadFile(file.filename)">Download File</button>
+                <button class="btn btn-danger" ng-click="records.deleteFile(file.filename)">Delete File</button>
               </div>
-              <h5>{{records.getDate(file.filename)}}&nbsp{{file.filename}}&nbsp</h5>
-              <button class="btn btn-primary" ng-click="records.downloadFile(file.filename)">Download File</button>
-              <button class="btn btn-danger" ng-click="records.deleteFile(file.filename)">Delete File</button>
+            
             </div>
           </div>
       </div>

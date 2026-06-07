@@ -4,7 +4,8 @@
 
   class MainController {
 
-    constructor($http,$interval,$timeout,Auth,$scope,Modal,appConfig) {
+    constructor($http,$interval,$timeout,Auth,$scope,Modal,appConfig,$state) {
+      this.state=$state;
       this.http = $http;
       this.appConfig=appConfig;
       this.Modal=Modal;
@@ -128,6 +129,7 @@
                 //this.importCSV();
                 //this.fixImport();
               });
+              
             });
           }
         },0);
@@ -228,7 +230,7 @@
         return new Date(b.date) - new Date(a.date);
       });
       this.records.unshift({date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
-      this.scope.$apply();
+      //this.scope.$apply();
     }
     
     showPilotModal(empNum,record){
@@ -387,7 +389,7 @@
       });
     }
     
-    refreshToken(){
+    refreshToken(clicked){
       if (window.user) {
         this.interval.cancel(this.refreshInterval);
         this.clicked=undefined;
@@ -398,6 +400,7 @@
                     }
           
         };
+        if (clicked&&this.token) this.state.go('records');
       }
     }
     
@@ -406,12 +409,12 @@
       else return false;
     }
     
-    signInFirebase() {
+    signInFirebase(clicked) {
       if (this.username&&this.username!=="") window.username=this.username;
       if (this.password&&this.password!=="") window.password=this.password;
       if (window.username&&window.password&&window.username!==""&&window.password!=="") {
         this.clicked=true;
-        this.refreshInterval=this.interval(()=>{this.refreshToken()},50);
+        this.refreshInterval=this.interval(()=>{this.refreshToken(clicked);},50);
         window.signInFunction(window.username,window.password);
       }
       //else alert('Please enter a username and password');
@@ -583,7 +586,7 @@
           }
         }
         else this.loading=false;
-        this.scope.$apply();
+        //this.scope.$apply();
       },0);  
     }
     
@@ -628,7 +631,7 @@
           });
         }
         this.loading=false;
-        this.scope.$apply();
+        //this.scope.$apply();
       }).catch(err=>{
         alert(err);
         console.log(err);
