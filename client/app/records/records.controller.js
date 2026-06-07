@@ -147,7 +147,7 @@ class RecordsComponent {
       if (!res.data) return;
       let list=JSON.parse(res.data);
       this.files=list.filter(file=>file.startsWith(this.pilot._id.toString()));
-      this.getPilotsFiles();
+      this.timeout(()=>{this.getPilotsFiles();},1500);
     });
     //get records from api for this pilot
     this.http.post('/api/things/firebaseQuery',{collection:'records',parameter:'pilotNumber',value:this.pilot._id.toString()}).then(res=>{
@@ -539,11 +539,6 @@ class RecordsComponent {
         arr.forEach((str,i)=>{
           if (str==="associated") associated=arr[i+1];
         });
-        if (associated){
-          console.log(associated)
-          console.log(this.records)
-          console.log(this.records.map(e=>e._id))
-        }
         let recordsIndex=-1;
         if (this.records) recordsIndex=this.records.map(e=>e._id).indexOf(associated);
         if (recordsIndex>-1) {
