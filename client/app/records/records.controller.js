@@ -219,7 +219,7 @@ class RecordsComponent {
     if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
       if (!this.seat) return this.toaster.error('Error','Need to select PIC or SIC for this aircraft');
     }
-    else this.seat='PIC';
+    else this.seat=undefined;
     if (!this.pilot||!this.pilot._id) return this.toaster.error('Error','Need to select a pilot in the navbar before uploading');
     let files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
