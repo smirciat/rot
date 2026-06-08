@@ -565,6 +565,21 @@ class RecordsComponent {
     });  
   }
   
+  filenamePrompt(filename){
+    let newName = prompt('What would you like to change the filename to for ' + filename + '?',filename);
+    if (newName&&newName!==filename) {
+      this.http.post('/api/raws/changeFilename',{filename:filename,newName:newName}).then(res=>{
+        console.log(res.data);
+        this.toaster.success('Success','Filename Updated');
+        this.init();
+      })
+      .catch(err=>{
+        console.log(err);
+        this.toaster.error('Error','Unable to update filename');
+      });
+    }
+  }
+  
   downloadFile(filename){
     this.http({ url: "/records?filename=" + filename,
           method: "GET", 

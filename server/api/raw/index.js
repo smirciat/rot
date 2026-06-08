@@ -12,6 +12,7 @@ router.post('/uploadRecord', controller.uploadRecord);
 router.post('/upload', controller.upload);
 router.post('/listRecords', controller.listRecords);
 router.post('/list', controller.list);
+router.post('/changeFilename',controller.changeFilename);
 router.post('/deleteRecord',controller.deleteRecord);
 router.post('/delete',controller.deleteFile);
 router.put('/:id', controller.update);

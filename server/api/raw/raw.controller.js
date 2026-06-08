@@ -12,6 +12,7 @@
 import _ from 'lodash';
 import {Raw} from '../../sqldb';
 import fs from 'fs';
+const path = require('path');
 import config from '../../config/environment';
 const baseUrl = 'https://localhost:' + config.port;
 //const axios = require("axios");
@@ -119,6 +120,20 @@ export function list(req,res){
   });
   let JsonData=JSON.stringify(newFiles);
   if (JsonData) res.status(200).json(JsonData);
+}
+
+export async function changeFilename(req,res){
+  if (!req.body.filename||!req.body.newName) return res.status(500).json('Please Include filename and newName');
+  let filename=path.join(__dirname,'../..','records/'+req.body.filename);
+  let newName=path.join(__dirname,'../..','records/'+req.body.newName);
+  try {
+    await fs.renameSync(filename, newName);
+    return res.status(200).json("File Updated");
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json('Please Include filename and newName');
+  }
 }
 
 export function deleteFile(req,res){
