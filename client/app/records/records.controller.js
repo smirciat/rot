@@ -147,13 +147,14 @@ class RecordsComponent {
       if (!res.data) return;
       let list=JSON.parse(res.data);
       this.files=list.filter(file=>file.startsWith(this.pilot._id.toString()));
-      this.timeout(()=>{this.getPilotsFiles();},1500);
+      //get records from api for this pilot
+      this.http.post('/api/things/firebaseQuery',{collection:'records',parameter:'pilotNumber',value:this.pilot._id.toString()}).then(res=>{
+        this.records=res.data;
+        this.refreshRecords();
+        this.timeout(()=>{this.getPilotsFiles();},0);
+      });
     });
-    //get records from api for this pilot
-    this.http.post('/api/things/firebaseQuery',{collection:'records',parameter:'pilotNumber',value:this.pilot._id.toString()}).then(res=>{
-      this.records=res.data;
-      this.refreshRecords();
-    });
+    
   }
   
   loggedIn(){
