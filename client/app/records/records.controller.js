@@ -615,6 +615,9 @@ class RecordsComponent {
     this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:this.pilot}).then(res=>{
       let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
       if (index>-1) Object.assign(this.pilots[index], ...this.pilot );
+      let navIndex=this.scope.$root.nav.pilots.map(e=>e._id).indexOf(this.pilot._id);
+      if (navIndex>-1) this.scope.$root.nav.pilots[navIndex]=this.pilots[index];
+      
       this.toaster.success('Success','Pilot '+this.pilot.name+' is updated');
     }).catch(err=>{console.log(err)});
   }

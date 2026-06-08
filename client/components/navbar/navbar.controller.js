@@ -33,6 +33,10 @@ class NavbarController {
   }
   
   $onInit(){
+    this.init();
+  }
+  
+  init(){
     this.http.post('/api/things/firebase',{collection:'pilots'}).then(res=>{
       this.pilots=res.data.filter(pilot=>{
         return pilot.name&&pilot.name!==""&&(pilot.isActive===undefined||pilot.isActive)&&pilot.pilotBase;
