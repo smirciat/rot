@@ -256,14 +256,23 @@
   <hr>
   <div style="width:90%;margin:auto;">
       <div ng-repeat="cat in records.tabs track by $index" ng-init="tabIndex=$index">
-          <h2 ng-if="records.filterCheck(cat)">{{cat}}</h2>
+        <h2 ng-if="records.filterCheck(cat)" ng-click="records.showSLEArray[$index].showTab=!records.showSLEArray[$index].showTab">
+          {{cat}}&nbsp
+          <span ng-if="records.showSLEArray[$index].showTab">
+            <i class="fa-solid fa-square-caret-up"></i>
+          </span>
+          <span ng-if="!records.showSLEArray[$index].showTab">
+            <i class="fa-solid fa-square-caret-down"></i>
+          </span>
+        </h2>
+        <div  ng-if="records.showSLEArray[$index].showTab">
           <!--Single line entry goes here-->
           <div ng-if="records.filterCheck(cat)&&cat!=='CERT'">
-            <h4 style="margin-left:20px" ng-click="records.showSLEArray[$index]=!records.showSLEArray[$index]">
-              <span ng-if="!records.showSLEArray[$index]">Show Single Line Entry Form <i class="fa-solid fa-plus"></i></span>
-              <span ng-if="records.showSLEArray[$index]">Hide Single Line Entry Form <i class="fa-solid fa-minus"></i></span>
+            <h4 style="margin-left:20px" ng-click="records.showSLEArray[$index].showSLE=!records.showSLEArray[$index].showSLE">
+              <span ng-if="!records.showSLEArray[$index].showSLE">Show Single Line Entry Form <i class="fa-solid fa-plus"></i></span>
+              <span ng-if="records.showSLEArray[$index].showSLE">Hide Single Line Entry Form <i class="fa-solid fa-minus"></i></span>
             </h4>
-            <div ng-if="records.showSLEArray[$index]">
+            <div ng-if="records.showSLEArray[$index].showSLE">
               <table class="table table-bordered">
                 <thead><tr>
                   <th class="tight">Pilot's Name</th>
@@ -307,6 +316,7 @@
             
             </div>
           </div>
+        </div>
       </div>
   </div>
   <hr>

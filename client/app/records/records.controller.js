@@ -97,7 +97,7 @@ class RecordsComponent {
   $onInit(){
     this.showSLEArray=[];
     this.tabs.forEach(tab=>{
-      this.showSLEArray.push(false);
+      this.showSLEArray.push({showSLE:false,showTab:false});
     });
     this.date=new Date();
     this.upDate();
