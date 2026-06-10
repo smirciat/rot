@@ -87,7 +87,8 @@ export function index(req, res) {
 export function uploadRecord(req,res){
   let file=new Buffer.from(req.body.data,"base64");
   let filename=req.body.filename||"nofilename";
-  filename=__dirname+'/../../records/'+filename;
+  let dirname=baseDirName(__dirname);
+  filename=dirname+'/../../records/'+filename;
   fs.writeFileSync(filename,file);
   res.status(200).json("Response Text");
 }
@@ -95,13 +96,15 @@ export function uploadRecord(req,res){
 export function upload(req,res){
   let file=new Buffer.from(req.body.data,"base64");
   let filename=req.body.filename||"nofilename";
-  filename=__dirname+'/../../fileserver/'+filename;
+  let dirname=baseDirName(__dirname);
+  filename=dirname+'/../../fileserver/'+filename;
   fs.writeFileSync(filename,file);
   res.status(200).json("Response Text");
 }
 
 export function listRecords(req,res){
-  let folder=__dirname+'/../../records';
+  let dirname=baseDirName(__dirname);
+  let folder=dirname+'/../../records';
   let files=fs.readdirSync(folder);
   let newFiles=[];
   files.forEach(file=>{
@@ -112,7 +115,8 @@ export function listRecords(req,res){
 }
 
 export function list(req,res){
-  let folder=__dirname+'/../../fileserver';
+  let dirname=baseDirName(__dirname);
+  let folder=dirname+'/../../fileserver';
   let files=fs.readdirSync(folder);
   let newFiles=[];
   files.forEach(file=>{
@@ -124,8 +128,9 @@ export function list(req,res){
 
 export function changeFilename(req,res){
   if (!req.body.filename||!req.body.newName) return res.status(500).json('Please Include filename and newName');
-  let filename=path.join(__dirname,'../..','records/'+req.body.filename);
-  let newName=path.join(__dirname,'../..','records/'+req.body.newName);
+  let dirname=baseDirName(__dirname);
+  let filename=path.join(dirname,'../..','records/'+req.body.filename);
+  let newName=path.join(dirname,'../..','records/'+req.body.newName);
   try {
     fs.renameSync(filename, newName);
     return res.status(200).json("File Updated");
@@ -137,13 +142,15 @@ export function changeFilename(req,res){
 }
 
 export function deleteFile(req,res){
-  let filename=__dirname+'/../../fileserver/'+req.body.filename;
+  let dirname=baseDirName(__dirname);
+  let filename=dirname+'/../../fileserver/'+req.body.filename;
   fs.unlinkSync(filename);
   res.status(200).json("File Deleted");
 }
 
 export function deleteRecord(req,res){
-  let filename=__dirname+'/../../records/'+req.body.filename;
+  let dirname=baseDirName(__dirname);
+  let filename=dirname+'/../../records/'+req.body.filename;
   fs.unlinkSync(filename);
   res.status(200).json("File Deleted");
 }
@@ -193,4 +200,19 @@ export function destroy(req, res) {
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));
+}
+
+export function baseDirName(dirname){
+  let arr=dirname.split('/');
+  let distIndex=-1;
+  arr.forEach((folder,index)=>{
+    if (folder==='dist') {
+      distIndex=index;
+    }
+  });
+  if (distIndex===-1) return dirname;
+  else {
+    arr.splice(distIndex,1);
+    return arr.join('/');
+  }
 }

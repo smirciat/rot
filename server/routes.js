@@ -6,6 +6,7 @@
 
 import errors from './components/errors';
 import path from 'path';
+import {baseDirName} from './api/raw/raw.controller.js';
 //import lusca from 'lusca';
 import * as auth from './auth/auth.service';
 
@@ -25,7 +26,9 @@ export default function(app) {
     else res.status(500);
   });
   app.get('/records', function(req, res){
-    if (req.query) res.sendFile("./records/" + req.query.filename, {root: __dirname});
+    let dirname = baseDirName(__dirname);
+    const safePath = path.join(dirname, 'records', req.query.filename);
+    if (req.query) res.sendFile(safePath);
     else res.status(500);
   });
   app.get('/fileserver/attachments', function(req, res){
