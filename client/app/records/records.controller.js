@@ -109,7 +109,7 @@ class RecordsComponent {
     
     this.scope.$watch('$root.nav.chosenPilot',(newVal,oldVal)=>{
       if (newVal) this.queryObj.value=newVal.displayName;
-      this.init();
+      if (oldVal&&newVal&&oldVal._id!==newVal._id) this.init();
     }); 
     this.scope.$watch('records.tab',(newVal,oldVal)=>{
       if (newVal) {
@@ -135,6 +135,7 @@ class RecordsComponent {
         let k=key + 'Exp';
         if (key==='far293a') k=key+'148';
         let obj={key:key,k:k,events:[]};
+        if (!this.pilots) return;
         this.pilots.forEach(pilot=>{
           if (!pilot[k]) return;
           let eventObj={name:pilot.name,id:pilot._id,exp:pilot[k]};
