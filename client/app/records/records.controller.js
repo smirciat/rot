@@ -295,6 +295,7 @@ class RecordsComponent {
   }
   
   add(){
+    if (this.associated&&!this.associated._id) this.associated=undefined;
     if ((!this.tab||!this.subtab)&&!this.associated) return this.toaster.error('Error','Need to select a tab before uploading');
     if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
       if (!this.seat) return this.toaster.error('Error','Need to select PIC or SIC for this aircraft');
@@ -307,6 +308,9 @@ class RecordsComponent {
       //for of loop if multiple uploads of this file
       let tabArray=[];
       if (this.associated) {
+        if (!Array.isArray(this.associated.trainingTypeArray)||this.associated.trainingTypeArray.length===0) {
+          return this.toaster.error('Error','Need to select some training types within the associated record before uploading');
+        }
         this.associated.trainingTypeArray.forEach(type=>{
           const sub=this.associated.trainingType.charAt(0).toUpperCase() + this.associated.trainingType.slice(1).toLowerCase();
           const {tab,seat}=this.typeToTab(type);
