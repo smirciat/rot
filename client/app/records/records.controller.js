@@ -3,7 +3,7 @@
 (function(){
 
 class RecordsComponent {
-  constructor($scope,$timeout,$interval,$http,toaster,appConfig,Modal,categoryFilterFilter) {
+  constructor($scope,$timeout,$interval,$http,toaster,appConfig,Modal,categoryFilterFilter,$state) {
     this.categoryFilter=categoryFilterFilter;
     this.appConfig=appConfig;
     this.Modal=Modal;
@@ -12,6 +12,7 @@ class RecordsComponent {
     this.interval=$interval;
     this.scope=$scope;
     this.toaster=toaster;
+    this.state=$state;
     this.testString-'Test String';
     this.fileName='';
     this.file=null;
@@ -35,9 +36,8 @@ class RecordsComponent {
       var formLabels = ["Basic Indoc", "HAZMAT", "293(b) & 299", "297", "-", "Caravan", "1900", "King Air", "Sky Courier", "CASA"];
       this.suffices = ['baseIndoc','baseHazmat','base293','base297','-','base208','base1900','baseKingAir','base408','baseCasa'];
       this.trainingTypes=['none','initial','recurrent', 'transition', 'upgrade', 'requalification'];
-      //['none','initial flight','initial ground','recurrent flight','recurrent ground','transition flight','transition ground','upgrade flight','upgrade ground','requalification flight','requalification ground'];
       this.types=['none','BasicIndoc','Hazmat','far299','far297','far297g','C208','B190','BE20','C408','C212'];
-      this.instructors=['new','Kyle Lefebvre','Nick Hajdukovich','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans','Michael K. Evans','Andy Smircich','Neill Toelle','Josh Krebiehl','Tim Kunkel','Frank Parker','Tim Hopley','Scott Gordon'];
+      this.instructors=['none','Kyle Lefebvre','Nick Hajdukovich','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans','Michael K. Evans','Andy Smircich','Neill Toelle','Josh Krebiehl','Tim Kunkel','Frank Parker','Tim Hopley','Scott Gordon'];
       this.formTypes=[];
       for (var i=0;i<formLabels.length;i++) {
         this.formTypes.push({label:formLabels[i],suffix:this.suffices[i],radio:false,id:i});
@@ -97,6 +97,8 @@ class RecordsComponent {
   }
   
   $onInit(){
+    if (!window.user) return this.state.go('main');
+    this.showTable=true;
     this.showSLEArray=[];
     this.date=new Date();
     this.upDate();
@@ -130,26 +132,34 @@ class RecordsComponent {
   
   init(){
     //build array of upcoming events sorted by tab
-      this.upcomingEvents=[];
-      this.appConfig.trainingEventKeys.forEach((key,index)=>{
-        let k=key + 'Exp';
-        if (key==='far293a') k=key+'148';
-        let obj={key:key,k:k,events:[]};
-        if (!this.pilots) return;
-        this.pilots.forEach(pilot=>{
-          if (!pilot[k]) return;
-          let eventObj={name:pilot.name,id:pilot._id,exp:pilot[k]};
-          //in base month
-          if (this.isWithinMonth(pilot[k],0)) eventObj.grace=2;
-          //late grace
-          if (this.isWithinMonth(pilot[k],1)) eventObj.grace=1;
-          if (this.isWithinMonth(pilot[k],-1)) eventObj.grace=3;
-          //uncurrent
-          if (this.isPriorToStartOfLastMonth(pilot[k])) eventObj.grace=0;
-          if (eventObj.grace>-1) obj.events.push(eventObj);
-        });
-        this.upcomingEvents.push(obj);
+    this.upcomingEvents=[];
+    this.upcomingEventsSorted=[];
+    this.appConfig.trainingEventKeys.forEach((key,index)=>{
+      let k=key + 'Exp';
+      if (key==='far293a') k=key+'148';
+      let obj={key:key,k:k,events:[]};
+      if (!this.pilots) return;
+      this.pilots.forEach(pilot=>{
+        if (!pilot[k]) return;
+        let eventObj={name:pilot.name,id:pilot._id,event:key,exp:pilot[k]};
+        //in base month
+        if (this.isWithinMonth(pilot[k],0)) eventObj.grace=2;
+        //late grace
+        if (this.isWithinMonth(pilot[k],1)) eventObj.grace=1;
+        if (this.isWithinMonth(pilot[k],-1)) eventObj.grace=3;
+        //uncurrent
+        if (this.isPriorToStartOfLastMonth(pilot[k])) eventObj.grace=0;
+        if (eventObj.grace>-1) {
+          obj.events.push(eventObj);
+          this.upcomingEventsSorted.push(eventObj);
+        }
       });
+      this.upcomingEvents.push(obj);
+    });
+    
+    //sort the sorted
+    this.upcomingEventsSorted=this.upcomingEventsSorted.sort((a,b)=>new Date(a.exp)-new Date(b.exp));
+    
     this.tabs.forEach(tab=>{
       this.showSLEArray.push({showSLE:false,showTab:false});
     });
@@ -181,6 +191,15 @@ class RecordsComponent {
       });
     });
     
+  }
+  
+  fillCert(type,record){
+    if (type==='instructor'){
+      if (record.instructor==='none') record.instructor=null;
+    }
+    else {
+      if (record.checkAirman==='none') record.checkAirman=null;
+    }
   }
   
   isPriorToStartOfLastMonth(targetDate) {
@@ -353,35 +372,41 @@ class RecordsComponent {
         if (dateexists) existingDate=new Date(dateexists);
         //if early or late grace, and rebase is false
         if (this.isWithinOneMonth(date,existingDate)) {
+          //in base month for the event
           if (!record.newBaseMonth||record.newBaseMonth==='false') date=existingDate;
-          if (!confirm('Are you sure you want to create a new base month?  It appears you are within the window.')) {
+          else if (!confirm('Are you sure you want to create a new base month?  It appears you are within the window.')) {
             this.toaster.error('Error','Expiration date not updated');
-            //this.init();
             return;
+          }
+          else {
+            //new base month anyway
           }
         }
         else {
+          //not in base month for the event
           if ((!record.newBaseMonth||record.newBaseMonth==='false')&&dateexists) {
-            this.toaster.error('Error','You are not within the window for this event, you will have to rebase to save a new Exp date. Expiration date not updated');
-            //this.init();
-            return;
+            if (confirm('You had previously selected to not create a new base month,  Do you want to set a new base month for ' + expKey + '? Currently, it is ' + new Date(existingDate).toLocaleDateString() )){
+              //new base month will apply
+            }
+            else {
+              this.toaster.error('Error','You are not within the window for this event, you will have to rebase to save a new Exp date. Expiration date not updated');
+              return;
+            }
           }
         }
         
         let newDate = new Date(new Date(date).setMonth(date.getMonth() + timeframe));
         if (newDate<existingDate) {
-          console.log(existingDate);
-          console.log(newDate);
           this.toaster.error('Error','New expiration date should not be earlier than the existing one! Expiration date not updated');
           //this.init();
           return;
         }
-        if (confirm('Update expiration for ' + expKey + ' to ' + newDate.toLocaleDateString() + '?')){
+        if (confirm('Are you sure you want to update '+this.pilot.name+'`s expiration for ' + expKey + ' to ' + newDate.toLocaleDateString() + '?')){
           let doc={_id:this.pilot._id};
           doc[expKey] = newDate.toLocaleDateString();
           if (expKeyAlt) doc[expKeyAlt] = newDate.toLocaleDateString();
           this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
-            this.toaster.success('Success','Pilot Profil Updated');
+            this.toaster.success('Success','Pilot Profile Updated');
             this.fullPilot[expKey] = newDate.toLocaleDateString();
             let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
             if (index>-1) Object.assign(this.pilots[index], ...doc );
@@ -613,7 +638,7 @@ class RecordsComponent {
       }
       
       //get the file
-      this.http({ url: "/records?filename=" + filename,
+      this.http({ url: "/recordPDFs?filename=" + filename,
           method: "GET", 
           responseType: 'arraybuffer' })
         .then(response=> {
@@ -644,7 +669,7 @@ class RecordsComponent {
   }
   
   downloadFile(filename){
-    this.http({ url: "/records?filename=" + filename,
+    this.http({ url: "/recordPDFs?filename=" + filename,
           method: "GET", 
           responseType: 'arraybuffer' })
         .then(response=> {

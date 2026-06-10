@@ -1,3 +1,17 @@
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0; /* Clears browser default 8px margin */
+}
+.box {
+  display: inline-block;
+  width: 48%;          /* Adjust width so they fit on one line */
+  vertical-align: top; /* Keeps them aligned at the top */
+  box-sizing: border-box; 
+}
 .points-row {
     display: flex;
     align-items: center;

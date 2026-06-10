@@ -391,6 +391,9 @@ module.exports = function(grunt) {
             '<%= yeoman.server %>/**/*',
             '!<%= yeoman.server %>/config/local.env.sample.js',
             '!<%= yeoman.server %>/records/**',
+            '!<%= yeoman.server %>/pdfs/**',
+            '!<%= yeoman.server %>/pdfs1/**',
+            '!<%= yeoman.server %>/fileserver/**'
           ]
         }]
       },

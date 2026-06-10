@@ -204,12 +204,7 @@ export function destroy(req, res) {
 
 export function baseDirName(dirname){
   let arr=dirname.split('/');
-  let distIndex=-1;
-  arr.forEach((folder,index)=>{
-    if (folder==='dist') {
-      distIndex=index;
-    }
-  });
+  const distIndex=arr.indexOf('dist');
   if (distIndex===-1) return dirname;
   else {
     arr.splice(distIndex,1);

@@ -1,21 +1,41 @@
 <toaster-container></toaster-container>
-<div ng-if="records.loggedIn()" style="background-color:#ffffcc;padding-top:20px;">
-  <div style="width:90%;margin:auto;" ng-if="records.isUserUploader()">
-    <h3 ng-click="records.showUpcomingEvents=!records.showUpcomingEvents">
-      Upcoming Training Events &nbsp
-      <span ng-if="records.showUpcomingEvents">
-        <i class="fa-solid fa-square-caret-up"></i>
-      </span>
-      <span ng-if="!records.showUpcomingEvents">
-        <i class="fa-solid fa-square-caret-down"></i>
-      </span>
-    </h3>
-    <div ng-if="records.showUpcomingEvents">
-      <div ng-repeat="event in records.upcomingEvents track by $index">
-        <h4 style="margin-left:20px" ng-if="event.events.length>0">{{event.key}}</h4>
-        <h5 style="margin-left:40px" ng-repeat="pilot in event.events | orderBy: 'grace' track by $index" ng-class="records.eventClass(pilot.grace)" style="font-weight:bold;">
-          {{pilot.id}}&nbsp{{pilot.name}}&nbsp{{pilot.exp}}&nbsp{{records.graces[pilot.grace]}}
-        </h5>
+<div ng-if="records.loggedIn()" style="background-color:#ffffcc;margin:0;min-height: 100vh;">
+  <div style="width:90%;margin:auto;padding-top:20px;">
+    <div class="box">
+      <h3 ng-click="records.showUpcomingEvents=!records.showUpcomingEvents">
+        Upcoming Training Events &nbsp
+        <span ng-if="records.showUpcomingEvents">
+          <i class="fa-solid fa-square-caret-up"></i>
+        </span>
+        <span ng-if="!records.showUpcomingEvents">
+          <i class="fa-solid fa-square-caret-down"></i>
+        </span>
+      </h3>
+      <div ng-if="records.showUpcomingEvents">
+        <div ng-repeat="event in records.upcomingEvents track by $index">
+          <h4 style="margin-left:20px" ng-if="event.events.length>0">{{event.key}}</h4>
+          <h5 style="margin-left:40px" ng-repeat="pilot in event.events | orderBy: 'grace' track by $index" ng-class="records.eventClass(pilot.grace)" style="font-weight:bold;">
+            {{pilot.id}}&nbsp{{pilot.name}}&nbsp{{pilot.exp}}&nbsp{{records.graces[pilot.grace]}}
+          </h5>
+        </div>
+      </div>
+    </div>
+    <div class="box">
+      <h3 ng-click="records.showUpcomingEvents=!records.showUpcomingEvents">
+        Upcoming Training Events Stacked &nbsp
+        <span ng-if="records.showUpcomingEvents">
+          <i class="fa-solid fa-square-caret-up"></i>
+        </span>
+        <span ng-if="!records.showUpcomingEvents">
+          <i class="fa-solid fa-square-caret-down"></i>
+        </span>
+      </h3>
+      <div ng-if="records.showUpcomingEvents">
+        <div ng-repeat="pilot in records.upcomingEventsSorted track by $index">
+          <h5 style="margin-left:40px" ng-class="records.eventClass(pilot.grace)" style="font-weight:bold;">
+            {{pilot.id}}&nbsp{{pilot.name}}&nbsp{{pilot.event}}&nbsp{{pilot.exp}}&nbsp{{records.graces[pilot.grace]}}
+          </h5>
+        </div>
       </div>
     </div>
     <hr>
@@ -262,6 +282,7 @@
             <table class="table table-bordered" >
               <thead><tr style="font-size:10px;font-weight:bold;height:40px;">
                 <th><div>Removed From Duty</div><div style="font-weight:normal">Type of Duty</div></th>
+                <th><div>Permanent</div><div style="font-weight:normal">Uncheck if Temporary</div></th>
                 <th><div>Due To</div><div style="font-weight:normal">Reason</div></th>
                 <th><div>Removed</div><div style="font-weight:normal">Date/Initials</div></th>
                 <th><div>Reinstated</div><div style="font-weight:normal">Date/Initials</div></th>
@@ -277,9 +298,10 @@
                       </ui-select-choices>
                     </ui-select>
                   </td>
-                  <td><input type="text" ng-model="row.reason" style="width:100%"></td>
-                  <td><input type="text" ng-model="row.removed" style="width:100%"></td>
-                  <td><input type="text" ng-model="row.reinstated" style="width:100%"></td>
+                  <td><input type="checkbox" ng-model="row.permanent" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
+                  <td><input type="text" ng-model="row.reason" style="width:100%;margin-top:5px"></td>
+                  <td><input type="text" ng-model="row.removed" style="width:100%;margin-top:5px"></td>
+                  <td><input type="text" ng-model="row.reinstated" style="width:100%;margin-top:5px"></td>
                   <td><button class="btn btn-warning" ng-click="records.pilot.removals.splice($index,1)">Delete Row</button></td>
                 </tr>
                 <tr><td><button class="btn btn-info" ng-click="records.pilot.removals.push({})">Add Row</button></td></tr>
