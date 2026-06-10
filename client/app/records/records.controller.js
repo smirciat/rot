@@ -163,7 +163,7 @@ class RecordsComponent {
     this.fullPilot=p;
     this.pilot=this.cleanObject(p);
     if (!this.pilot.quals||this.pilot.quals.length===0) this.pilot.quals=[{}];
-    if (!this.pilot.removals||this.pilot.removals.length===0) this.pilot.removals=[{}];
+    if (!this.pilot.removals||this.pilot.removals.length===0) this.pilot.removals=[];
     this.fullFiles.forEach(file=>{
       if (file.urlMain) URL.revokeObjectURL(file.urlMain);
     });
