@@ -54,7 +54,7 @@
         </ui-select>
         <h5>OR:</h5>
     </div>
-    <div class="points-row">
+    <div class="points-row" ng-if="!records.associated||!records.associated._id">
         <h5>Select Tab of File From List</h5>
         <ui-select ng-model="records.tab" theme="bootstrap" dropdown-position="down">
           <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
@@ -75,8 +75,6 @@
             <div ng-bind-html="item | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
-      </div>
-      <div class="points-row">
         <h5>Document Date</h5>
         <!--<textarea rows="1" ng-model="records.dateString"></textarea>-->
         <div style="padding-left:0px;padding-top:0px" class="input-group">
@@ -91,6 +89,9 @@
              is-open="records.isDatepickerOpen" datepicker-options="records.datepickerOptions" ng-required="true" close-text="Close" 
              alt-input-formats="altInputFormats"/>
         </div>
+      </div>
+      <div class="points-row">
+        
         <!--<h5>New Base Month?</h5>
         <input type="checkbox" ng-model="records.rebase" class="f6Input">-->
         <button class="btn btn-success" ng-click="records.add()">Upload File(s)</button>

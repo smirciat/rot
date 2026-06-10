@@ -400,7 +400,7 @@
                     }
           
         };
-        if (clicked&&this.token) this.state.go('records');
+        if (clicked&&this.token) this.timeout(()=>{this.state.go('records')},0);
       }
     }
     
