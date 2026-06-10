@@ -302,6 +302,7 @@ class RecordsComponent {
         r.onloadend = e=>{
           this.http.post('/api/raws/uploadRecord',{data:btoa(e.target.result),filename:filename}).then(res=>{
             //update training exp date in accordance with new upload, checking for errors and alerting of the changes
+            this.toaster.success('Success','File Uploaded Successfully');
             if (this.subtab==='Medical') {
               let doc={_id:this.pilot._id};
               doc.medicalDate = this.dateString;
@@ -380,6 +381,7 @@ class RecordsComponent {
           doc[expKey] = newDate.toLocaleDateString();
           if (expKeyAlt) doc[expKeyAlt] = newDate.toLocaleDateString();
           this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
+            this.toaster.success('Success','Pilot Profil Updated');
             this.fullPilot[expKey] = newDate.toLocaleDateString();
             let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
             if (index>-1) Object.assign(this.pilots[index], ...doc );
@@ -659,6 +661,7 @@ class RecordsComponent {
     let answer=confirm("Are you sure you want to delete this file?");
     if (answer) {
       this.http.post('/api/raws/deleteRecord',{filename:filename}).then(res=>{
+        this.toaster.warning('Warning','Record has been deleted');
         console.log(res.data);
         this.init();
       });
@@ -697,6 +700,7 @@ class RecordsComponent {
     if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return alert('You Need to Select at least one training type before saving');
     //create or update record in firebase, if it was a new record, unshift a new new one
     this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
+      this.toaster.success('Success','Record is Updated');
       this.records[index]=res.data;
       if (this.records[0]._id) this.records.unshift({name:this.fullPilot.name,pilotNumber:this.fullPilot._id.toString(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
     });
@@ -716,6 +720,7 @@ class RecordsComponent {
     if (!record._id) return alert('No ID associated with this record, nothing to delete in Firestore');
     //remove record from firebase and update local array
     this.http.post('/api/things/deleteFirebase',{id:record._id}).then(res=>{
+      this.toaster.warning('Warning','Record has been deleted');
       this.records.splice(index,1);
     })
     .catch(err=>{console.log(err)});
