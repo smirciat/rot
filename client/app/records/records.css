@@ -27,3 +27,15 @@
   top: 100% !important;
   bottom: auto !important;
 }
+.event-red {
+    color:red;
+}
+.event-purple {
+    color:purple;
+}
+.event-green {
+    color:#006600;
+}
+.event-yellow {
+    color:#D4AF37;
+}

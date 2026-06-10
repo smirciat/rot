@@ -23,8 +23,7 @@
     "angular-ui-grid": "^4.12.7",
     "angular-moment": "^1.3.1",
     "pdfmake": "^0.2.10",
-    "angular-thumbnails": "^0.2.3",
-    "sax": "*"
+    "angular-thumbnails": "^0.2.3"
   },
   "devDependencies": {
     "angular-mocks": "~1.5.0"

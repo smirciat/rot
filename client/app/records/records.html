@@ -1,62 +1,80 @@
 <toaster-container></toaster-container>
 <div ng-if="records.loggedIn()">
-  <div style="width:90%;margin:auto;">
-      <h3>Select One or More Files to Upload</h3>
-      <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
-      <!--<input class="form-control" style="width:800px;" type="file" multiple id="file" name="file" />-->
-      <input class="form-control" style="width:800px;" type="file" id="file" name="file" />
-      <br>
-      <div class="points-row">
-          <h5>Select Training Record Associated with this Upload</h5>
-          <ui-select ng-model="records.associated" theme="bootstrap" dropdown-position="down" style="width: 30em !important;">
-            <ui-select-match placeholder="Choose Tab">{{$select.selected.date + ' - ' + records.displayArray($select.selected) }}</ui-select-match>
-            <ui-select-choices repeat="item in records.records" >
-              <div ng-bind-html="item.date + ' - ' + records.displayArray(item) | highlight: $select.search"></div>
-            </ui-select-choices>
-          </ui-select>
-          <h5>OR:</h5>
+  <div style="width:90%;margin:auto;" ng-if="records.isUserUploader()">
+    <h3 ng-click="records.showUpcomingEvents=!records.showUpcomingEvents">
+      Upcoming Training Events &nbsp
+      <span ng-if="records.showUpcomingEvents">
+        <i class="fa-solid fa-square-caret-up"></i>
+      </span>
+      <span ng-if="!records.showUpcomingEvents">
+        <i class="fa-solid fa-square-caret-down"></i>
+      </span>
+    </h3>
+    <div ng-if="records.showUpcomingEvents">
+      <div ng-repeat="event in records.upcomingEvents track by $index">
+        <h4 style="margin-left:20px" ng-if="event.events.length>0">{{event.key}}</h4>
+        <h5 style="margin-left:40px" ng-repeat="pilot in event.events | orderBy: 'grace' track by $index" ng-class="records.eventClass(pilot.grace)" style="font-weight:bold;">
+          {{pilot.id}}&nbsp{{pilot.name}}&nbsp{{pilot.exp}}&nbsp{{records.graces[pilot.grace]}}
+        </h5>
+      </div>
+    </div>
+    <hr>
+    <h3>Select One or More Files to Upload</h3>
+    <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
+    <!--<input class="form-control" style="width:800px;" type="file" multiple id="file" name="file" />-->
+    <input class="form-control" style="width:800px;" type="file" id="file" name="file" />
+    <br>
+    <div class="points-row">
+        <h5>Select Training Record Associated with this Upload</h5>
+        <ui-select ng-model="records.associated" theme="bootstrap" dropdown-position="down" style="width: 30em !important;">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected.date + ' - ' + records.displayArray($select.selected) }}</ui-select-match>
+          <ui-select-choices repeat="item in records.records" >
+            <div ng-bind-html="item.date + ' - ' + records.displayArray(item) | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <h5>OR:</h5>
+    </div>
+    <div class="points-row">
+        <h5>Select Tab of File From List</h5>
+        <ui-select ng-model="records.tab" theme="bootstrap" dropdown-position="down">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in records.tabs" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <ui-select ng-model="records.seat" theme="bootstrap" dropdown-position="down" 
+            ng-if="records.tab==='C212'||records.tab==='B190'||records.tab==='C408'">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in ['PIC','SIC']" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <ui-select ng-model="records.subtab" theme="bootstrap" dropdown-position="down">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in records.subs" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
       </div>
       <div class="points-row">
-          <h5>Select Tab of File From List</h5>
-          <ui-select ng-model="records.tab" theme="bootstrap" dropdown-position="down">
-            <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
-            <ui-select-choices repeat="item in records.tabs" >
-              <div ng-bind-html="item | highlight: $select.search"></div>
-            </ui-select-choices>
-          </ui-select>
-          <ui-select ng-model="records.seat" theme="bootstrap" dropdown-position="down" 
-              ng-if="records.tab==='C212'||records.tab==='B190'||records.tab==='C408'">
-            <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
-            <ui-select-choices repeat="item in ['PIC','SIC']" >
-              <div ng-bind-html="item | highlight: $select.search"></div>
-            </ui-select-choices>
-          </ui-select>
-          <ui-select ng-model="records.subtab" theme="bootstrap" dropdown-position="down">
-            <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
-            <ui-select-choices repeat="item in records.subs" >
-              <div ng-bind-html="item | highlight: $select.search"></div>
-            </ui-select-choices>
-          </ui-select>
+        <h5>Document Date</h5>
+        <!--<textarea rows="1" ng-model="records.dateString"></textarea>-->
+        <div style="padding-left:0px;padding-top:0px" class="input-group">
+          <input style="height:35px;width:150px;" type="text" ng-model="records.dateStringFormatted" 
+              ng-blur="records.upDate('string')" ng-keydown="records.handle($event)">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-primary" ng-click="records.isDatepickerOpen = !records.isDatepickerOpen">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+          <input style="display:none" type="text" class="form-control" uib-datepicker-popup="EEEE MMM d, yyyy" ng-model="records.date" ng-change="records.upDate()" 
+             is-open="records.isDatepickerOpen" datepicker-options="records.datepickerOptions" ng-required="true" close-text="Close" 
+             alt-input-formats="altInputFormats"/>
         </div>
-        <div class="points-row">
-          <h5>Document Date</h5>
-          <!--<textarea rows="1" ng-model="records.dateString"></textarea>-->
-          <div style="padding-left:0px;padding-top:0px" class="input-group">
-            <input style="height:35px;width:150px;" type="text" ng-model="records.dateStringFormatted" 
-                ng-blur="records.upDate('string')" ng-keydown="records.handle($event)">
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-primary" ng-click="records.isDatepickerOpen = !records.isDatepickerOpen">
-                <i class="glyphicon glyphicon-calendar"></i>
-              </button>
-            </span>
-            <input style="display:none" type="text" class="form-control" uib-datepicker-popup="EEEE MMM d, yyyy" ng-model="records.date" ng-change="records.upDate()" 
-               is-open="records.isDatepickerOpen" datepicker-options="records.datepickerOptions" ng-required="true" close-text="Close" 
-               alt-input-formats="altInputFormats"/>
-          </div>
-          <!--<h5>New Base Month?</h5>
-          <input type="checkbox" ng-model="records.rebase" class="f6Input">-->
-          <button class="btn btn-success" ng-click="records.add()">Upload File(s)</button>
-      </div>
+        <!--<h5>New Base Month?</h5>
+        <input type="checkbox" ng-model="records.rebase" class="f6Input">-->
+        <button class="btn btn-success" ng-click="records.add()">Upload File(s)</button>
+    </div>
   </div>
   <hr>
   
@@ -207,7 +225,8 @@
               </td>
             </tr></tbody>
           </table>
-          </table><table class="table table-bordered">
+          </table>
+          <table class="table table-bordered">
             <thead><tr style="font-size:10px;font-weight:bold;height:40px;">
               <th>POSITION / DUTY ASSIGNMENT</th>
               <th><div>VFR CHTR 135.293</div><div style="font-weight:normal">Flight Test</div></th>
@@ -239,6 +258,34 @@
               <tr><td><button class="btn btn-info" ng-click="records.pilot.quals.push({})">Add Row</button></td></tr>
             </tbody>
           </table>
+          <div style="background-color:#FFE7E9">
+            <table class="table table-bordered" >
+              <thead><tr style="font-size:10px;font-weight:bold;height:40px;">
+                <th><div>Removed From Duty</div><div style="font-weight:normal">Type of Duty</div></th>
+                <th><div>Due To</div><div style="font-weight:normal">Reason</div></th>
+                <th><div>Removed</div><div style="font-weight:normal">Date/Initials</div></th>
+                <th><div>Reinstated</div><div style="font-weight:normal">Date/Initials</div></th>
+                <th></th>
+              </tr></thead>
+              <tbody>
+                <tr ng-repeat="row in records.pilot.removals track by $index">
+                  <td>
+                    <ui-select ng-model="row.pda" theme="bootstrap" on-select="records.selectRemoval(row,$index)" dropdown-position="down">
+                      <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+                      <ui-select-choices repeat="item in records.assignments" >
+                        <div ng-bind-html="item | highlight: $select.search"></div>
+                      </ui-select-choices>
+                    </ui-select>
+                  </td>
+                  <td><input type="text" ng-model="row.reason" style="width:100%"></td>
+                  <td><input type="text" ng-model="row.removed" style="width:100%"></td>
+                  <td><input type="text" ng-model="row.reinstated" style="width:100%"></td>
+                  <td><button class="btn btn-warning" ng-click="records.pilot.removals.splice($index,1)">Delete Row</button></td>
+                </tr>
+                <tr><td><button class="btn btn-info" ng-click="records.pilot.removals.push({})">Add Row</button></td></tr>
+              </tbody>
+            </table>
+          </div>
           <div style="display: flex; justify-content:left; margin-bottom:10px;">
             <span style="margin-top:5px;">Medical Date:</span>&nbsp
             <input type="text" ng-model="records.pilot.medicalDate">&nbsp&nbsp&nbsp&nbsp&nbsp
@@ -250,7 +297,7 @@
               </ui-select-choices>
             </ui-select>
           </div>
-          <button class="btn btn-success" ng-click="records.savePilotAssignment()">Save Pilot Assignment Data</button>
+          <button class="btn btn-success" ng-click="records.savePilotAssignment()">Save Pilot Assignment/Removal Data</button>
       </div>
   </div>
   <hr>
@@ -265,7 +312,7 @@
             <i class="fa-solid fa-square-caret-down"></i>
           </span>
         </h2>
-        <div  ng-if="records.showSLEArray[$index].showTab">
+        <div ng-if="records.showSLEArray[$index].showTab">
           <!--Single line entry goes here-->
           <div ng-if="records.filterCheck(cat)&&cat!=='CERT'">
             <h4 style="margin-left:20px" ng-click="records.showSLEArray[$index].showSLE=!records.showSLEArray[$index].showSLE">

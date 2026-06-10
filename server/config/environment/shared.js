@@ -3,12 +3,12 @@
 exports = module.exports = {
   // List of user roles
   userRoles: ['guest', 'user', 'admin'],
-  trainingEventKeys:['BasicIndoc','Hazmat','far299','far297','far297g',
-     'C208PIC','C208TKS','C208Ground',
-     'B190PIC','B190SIC','B190Ground',
-     'BE20PIC','BE20Ground',
-     'C408PIC','C408SIC','C408Ground',
-     'C212PIC','C212SIC','C212Ground',
+  trainingEventKeys:['BasicIndoc','Hazmat','far299','far293a','far297','far297g',
+     'C208PIC','C208TKS','C208Ground','C208GOS',
+     'B190PIC','B190SIC','B190Ground','B190GOS',
+     'BE20PIC','BE20Ground','BE20GOS',
+     'C408PIC','C408SIC','C408Ground','C408GOS',
+     'C212PIC','C212SIC','C212Ground','C212GOS',
      'CheckAirmanObs','FlightInstructorObs'],
   trainingEvents:[{name:'BasicIndoc', label:'Basic Indoctrination',frequency:'12'},
                   {name:'Hazmat',frequency:'24',label:'Hazmat'},

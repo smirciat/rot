@@ -23,10 +23,12 @@ class RecordsComponent {
     this.tabs=['CERT','BI','HAZ','INTL','C208G','C408G','C212G','BE20G','B190G','RVSM','293A','C208','C408','C212','BE20','B190','297','297g','299','244','CFIT','FLT-INSTRUCTOR','CHECK-AIRMAN','OTHER-RECORDS'];
     this.subtabs=['Recurrent','Initial','Transition','Upgrade','Requalification'];
     this.categories=['Annual-Resume','Medical','Certificate','Drivers-License','Passport'];
+    this.graces=['Uncurrent','Late Grace','In Base Month','Early Grace'];
     this.tab='CERT';
     this.dateString=new Date().toLocaleDateString();
     this.maxHeight=70;
     this.newPilot={};
+    this.uploaderEmails=['fen@beringair.com','nathaniel@beringair.com','nathanielwkolson@gmail.com','smirciat@gmail.com','kalebjanke@gmail.com','ssman42@gmail.com'];
     this.approvalEmails=['fen@beringair.com','nathaniel@beringair.com','nathanielwkolson@gmail.com','smirciat@gmail.com'];
       this.pilotsOld=[];
       this.months=[];
@@ -96,9 +98,6 @@ class RecordsComponent {
   
   $onInit(){
     this.showSLEArray=[];
-    this.tabs.forEach(tab=>{
-      this.showSLEArray.push({showSLE:false,showTab:false});
-    });
     this.date=new Date();
     this.upDate();
     window.categories=this.categories;
@@ -121,13 +120,38 @@ class RecordsComponent {
       }
     });
     this.http.post('/api/things/firebase',{collection:'pilots'}).then(res=>{
-      this.pilots=res.data;
+      this.pilots=res.data.filter(p=>p.pilotBase&&p.pilotBase!=='none');
+      
+      //init for this.pilot
       this.init();
     });
     
   }
   
   init(){
+    //build array of upcoming events sorted by tab
+      this.upcomingEvents=[];
+      this.appConfig.trainingEventKeys.forEach((key,index)=>{
+        let k=key + 'Exp';
+        if (key==='far293a') k=key+'148';
+        let obj={key:key,k:k,events:[]};
+        this.pilots.forEach(pilot=>{
+          if (!pilot[k]) return;
+          let eventObj={name:pilot.name,id:pilot._id,exp:pilot[k]};
+          //in base month
+          if (this.isWithinMonth(pilot[k],0)) eventObj.grace=2;
+          //late grace
+          if (this.isWithinMonth(pilot[k],1)) eventObj.grace=1;
+          if (this.isWithinMonth(pilot[k],-1)) eventObj.grace=3;
+          //uncurrent
+          if (this.isPriorToStartOfLastMonth(pilot[k])) eventObj.grace=0;
+          if (eventObj.grace>-1) obj.events.push(eventObj);
+        });
+        this.upcomingEvents.push(obj);
+      });
+    this.tabs.forEach(tab=>{
+      this.showSLEArray.push({showSLE:false,showTab:false});
+    });
     this.flights=[];
     this.timeframe=0;
     this.expKey='';
@@ -138,6 +162,7 @@ class RecordsComponent {
     this.fullPilot=p;
     this.pilot=this.cleanObject(p);
     if (!this.pilot.quals||this.pilot.quals.length===0) this.pilot.quals=[{}];
+    if (!this.pilot.removals||this.pilot.removals.length===0) this.pilot.removals=[{}];
     this.fullFiles.forEach(file=>{
       if (file.urlMain) URL.revokeObjectURL(file.urlMain);
     });
@@ -157,15 +182,49 @@ class RecordsComponent {
     
   }
   
+  isPriorToStartOfLastMonth(targetDate) {
+    targetDate=new Date(targetDate);
+    const today = new Date();
+    const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    return targetDate < startOfLastMonth;
+  }
+  
+  isWithinMonth(targetDate,increment) {
+    //increment is 0 for this month, 1 for last month, -1 for next month
+    targetDate=new Date(targetDate);
+    const today = new Date();
+    const startOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - increment, 1);
+    const endOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - increment + 1, 0, 23, 59, 59, 999);
+    return targetDate >= startOfPrevMonth && targetDate <= endOfPrevMonth;
+  }
+  
+  eventClass(index){
+    if (index===0) return 'event-purple';
+    if (index===1) return 'event-red';
+    if (index===2) return 'event-yellow';
+    if (index===3) return 'event-green';
+  }
+  
+  isUserUploader(){
+    if (window.user&&this.uploaderEmails.indexOf(window.user.email)>-1) return true;
+    return false;
+  }
+  
   loggedIn(){
     return window.user&&window.user.accessToken;
   }
   
   cleanObject(p){
     return {
-      _id:p._id,name:p.name,quals:p.quals,ratings:p.ratings,other:p.other,otherDescription:p.otherDescription,
+      _id:p._id,name:p.name,quals:p.quals,removals:p.removals,ratings:p.ratings,other:p.other,otherDescription:p.otherDescription,
       cfi:p.cfi,commercial:p.commercial,atp:p.atp,cert:p.cert,medicalClass:p.medicalClass,medicalDate:p.medicalDate
     };
+  }
+  
+  selectRemoval(row,index){
+    if (row.pda==="Clear Selection") {
+      if (index||index===0) this.pilot.removals[index]={};
+    }
   }
   
   selectPda(row,index){
