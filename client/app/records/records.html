@@ -292,18 +292,18 @@
               <tbody>
                 <tr ng-repeat="row in records.pilot.removals track by $index">
                   <td>
-                    <ui-select ng-model="row.pda" theme="bootstrap" on-select="records.selectRemoval(row,$index)" dropdown-position="down">
+                    <ui-select ng-model="row.pda" theme="bootstrap" on-select="records.selectRemoval(row,$index)" dropdown-position="down" ng-disabled="row.locked">
                       <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
                       <ui-select-choices repeat="item in records.assignments" >
                         <div ng-bind-html="item | highlight: $select.search"></div>
                       </ui-select-choices>
                     </ui-select>
                   </td>
-                  <td><input type="checkbox" ng-model="row.permanent" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
-                  <td><input type="text" ng-model="row.reason" style="width:100%;margin-top:5px"></td>
-                  <td><input type="text" ng-model="row.removed" style="width:100%;margin-top:5px"></td>
-                  <td><input type="text" ng-model="row.reinstated" style="width:100%;margin-top:5px"></td>
-                  <td><button class="btn btn-warning" ng-click="records.pilot.removals.splice($index,1)">Delete Row</button></td>
+                  <td><input type="checkbox" ng-model="row.permanent" style="transform: scale(2);margin-left:20px;margin-top:12px" ng-disabled="row.locked"></td>
+                  <td><input type="text" ng-model="row.reason" style="width:100%;margin-top:5px" ng-disabled="row.locked"></td>
+                  <td><input type="text" ng-model="row.removed" style="width:100%;margin-top:5px" ng-disabled="row.locked"></td>
+                  <td><input type="text" ng-model="row.reinstated" style="width:100%;margin-top:5px" ng-disabled="row.locked"></td>
+                  <td><button class="btn btn-warning" ng-click="records.pilot.removals.splice($index,1)" ng-disabled="row.locked">Delete Row</button></td>
                 </tr>
                 <tr><td><button class="btn btn-info" ng-click="records.pilot.removals.push({})">Add Row</button></td></tr>
               </tbody>

@@ -235,6 +235,7 @@ class RecordsComponent {
   }
   
   cleanObject(p){
+    if (!p) return {};
     return {
       _id:p._id,name:p.name,quals:p.quals,removals:p.removals,ratings:p.ratings,other:p.other,otherDescription:p.otherDescription,
       cfi:p.cfi,commercial:p.commercial,atp:p.atp,cert:p.cert,medicalClass:p.medicalClass,medicalDate:p.medicalDate
@@ -705,6 +706,12 @@ class RecordsComponent {
     }
     let filtered = this.pilot.quals.filter((_, index) => !indexesToRemove.includes(index));
     this.pilot.quals = filtered;
+    if (this.pilot.removals) {
+      this.pilot.removals.forEach(removal=>{
+        if (removal.permanent) removal.locked=true;
+      });
+    }
+    console.log(this.pilot)
     this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:this.pilot}).then(res=>{
       let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
       if (index>-1) Object.assign(this.pilots[index], ...this.pilot );
