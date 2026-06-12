@@ -119,9 +119,9 @@
         <table flex class="table table-responsive table-bordered">
           <thead>    
             <tr>
-                <!--<th></th>
                 <th></th>
-                <th></th>-->
+                <th></th>
+                <th></th>
                 <th>Pilot</th>
                 <th>Emp#</th>
                 <th>Date</th>
@@ -139,14 +139,25 @@
           <tbody>
             <tr ng-repeat="record in records.records | recordFilter:records.showApproved track by $index " ng-init="recordIndex=$index" ng-class="records.newRecordClass(record)">
                 
-                <!--<td>
+                <td>
                   <button class="btn btn-primary" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'ROT')">
                     <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
                     ROT
                   </button>
                 </td>
-                <td><button class="btn btn-warning" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTest')"><span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>Flight Test</button></td>
-                <td><button class="btn btn-success" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTestINDOC')"><span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>INDOC</button></td>-->                <!--<td><input class="form-control" ng-model="record.name" type="text" ng-click="records.showPilotModal(record.pilotNumber,record)"></td>-->
+                <td>
+                  <button class="btn btn-warning" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTest')">
+                    <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                    Flight Test
+                  </button>
+                </td>
+                <td>
+                  <button class="btn btn-success" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTestINDOC')">
+                    <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+                    INDOC
+                  </button>
+                </td>                
+                <!--<td><input class="form-control" ng-model="record.name" type="text" ng-click="records.showPilotModal(record.pilotNumber,record)"></td>-->
                 <td style="padding-top:15px;">{{record.name}}</td>
                 <!--<td><input class="form-control" ng-model="record.pilotNumber" type="text" ng-blur="records.fillPilotData(record,recordIndex)"><!-- style="width:70px;"></td>-->
                 <td style="padding-top:15px;">{{record.pilotNumber}}</td>

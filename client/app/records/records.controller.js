@@ -55,6 +55,7 @@ class RecordsComponent {
         Object.assign(this.records[recordIndex],...formData);
         this.records[recordIndex].trainingTypeArray=[];
         for (let key in this.records[recordIndex]) {
+          if (this.appConfig.trainingEventKeys.indexOf(key)<0) continue;
           if (this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
             this.records[recordIndex][key]="true";
             this.records[recordIndex].trainingTypeArray.push(key);
@@ -733,13 +734,23 @@ class RecordsComponent {
   }
   
   update(record,index){
-    if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return alert('You Need to Select at least one training type before saving');
+    console.log(record)
+    if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return this.toaster.error('Error','You Need to Select at least one training type before saving');
     //create or update record in firebase, if it was a new record, unshift a new new one
     this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
       this.toaster.success('Success','Record is Updated');
+      const id=record._id;
       this.records[index]=res.data;
-      if (this.records[0]._id) this.records.unshift({name:this.fullPilot.name,pilotNumber:this.fullPilot._id.toString(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
+      if (!id) this.records.unshift(this.createNewRecord());
     });
+  }
+  
+  createNewRecord(){
+    let nr=JSON.parse(JSON.stringify(this.fullPilot));
+    let newObj={name:this.fullPilot.name,pilotNumber:this.fullPilot._id,date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })};
+    Object.assign(nr, newObj );
+    delete nr._id;
+    return nr;
   }
   
   approve(record,index){
@@ -812,9 +823,331 @@ class RecordsComponent {
     this.records.sort((a,b)=>{
       return new Date(b.date) - new Date(a.date);
     });
-    this.records.unshift({name:this.fullPilot.name,pilotNumber:this.fullPilot._id.toString(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })});
-    //this.scope.$apply();
+    this.records.unshift(this.createNewRecord());
   }
+  
+  tweakDate(date) {
+    return new Date(date).toLocaleDateString();
+  }
+  
+  dobBlur(id) {
+    var index = this.pilotsOld.map(e => e._id).indexOf(id);
+    this.pilotsOld[index].dateOfBirth=this.tweakDate(this.pilotsOld[index].dateOfBirth);
+  }
+  
+  medBlur(id) {
+    var index = this.pilotsOld.map(e => e._id).indexOf(id);
+    this.pilotsOld[index].medicalDate=this.tweakDate(this.pilotsOld[index].medicalDate);
+  }
+  
+  isItDisabled(){
+    if (this.loading) return "disabled";
+    return;
+  }
+  
+  isItLoading(){
+    return this.loading;
+  }
+  
+  keysToString(o){
+    return JSON.stringify(o);
+  }
+  
+  getExp(baseMonthString,recordDateString,frequencyString,skew){
+    let index=this.months.indexOf(baseMonthString);
+    let baseMonthInt;
+    if (index===-1) {
+      return "";
+    } else baseMonthInt=index+skew;
+    if (baseMonthInt===13) baseMonthInt=1;
+    let dateArray=recordDateString.split('/');
+    let month=parseInt(dateArray[0],10);//it comes from string, so its 1-12, there is no zero
+    let year=parseInt(dateArray[2],10);
+    let nextYear=year+1;
+    let yearAfter=year+2;
+    let nextBaseMonth=baseMonthInt;
+    let nextBaseYear=nextYear;
+    if (frequencyString==='6'){
+      if (baseMonthInt<7){
+        nextBaseMonth+=6;
+        nextBaseYear=year;
+        //if ((baseMonthInt===1||baseMonthInt===2)&&(month=11||month===12)) nextBaseYear=nextYear;
+      }
+      else {
+        nextBaseMonth-=6;
+        nextBaseYear=nextYear;
+      }
+    }
+    else {
+      if ((baseMonthInt===1||baseMonthInt===2)&&(month===11||month===12)){
+        nextBaseYear=yearAfter;
+      }
+    }
+    if (frequencyString==='24') nextBaseYear++;
+    let arr=new Date(nextBaseYear,nextBaseMonth,0).toLocaleDateString().split('/');
+    if (arr.length===3) return arr[0]+'/'+arr[1]+'/'+arr[2].substring(2);
+  }
+  
+  pdf(record,PDFFileName) {
+      let id=record._id;
+      this.update(record);
+      //spin buttons
+      this.loading=true;
+      //
+      let index = this.records.map(e => e._id).indexOf(id);
+      let pilot = this.records[index];
+      if (!pilot||!pilot.date) return this.toaster.error('Error','Check this records for completeness before loading a form from it');
+      let certType = "ATP/";
+      if (pilot.certType&&pilot.certType.toUpperCase()!="ATP"&&pilot.certType.toUpperCase()!="ATP/") certType="COMM/";
+      let medClass="FIRST";
+      if (pilot.medicalClass&&pilot.medicalClass.toUpperCase()!=="FIRST") medClass="SECOND";
+      let trainingClass;
+      if (pilot.trainingTypeCombo) trainingClass=pilot.trainingTypeCombo.split(' ')[0].toUpperCase();
+  		let dateObj = pilot.date;//new Date(pilot.date).toLocaleDateString();
+  		let dateArray=dateObj.split('/');
+	    let m, month, day, year;
+	    let exps=[];
+	    if (dateArray.length>=3) {
+        month = dateArray[0];
+        day = dateArray[1];
+        year = dateArray[2];
+	    }
+	    this.suffices.forEach((suffix,suffixIndex)=>{
+	      
+	      m = month;//this.months.indexOf(pilot[suffix]);
+	      let expM;
+	      let nextYear=parseInt(year,10)+1;
+	      let yearAfter=parseInt(year,10)+2;
+	      if (suffix==="base297"){
+	        if (m>5) {
+	          expM=m-6;
+	          exps.push(expM + '/' + nextYear);//this.months[expM] + ' ' + nextYear);
+	        }
+	        else {
+	          expM=m+8;
+	          exps.push(expM + '/' + year);//this.months[expM] + ' ' + year);
+	        }
+	      }
+	      else {
+  	      if (m===11) {
+  	        expM = 1;
+  	        exps.push(expM + '/' + nextYear);//this.months[expM] + ' ' + nextYear);
+  	      }
+  	      else {
+  	        expM = m+2;
+	          exps.push(expM + '/' + nextYear);//this.months[expM] + ' ' + nextYear);
+  	      }
+	      }
+	    });
+	    let nbm="NO"
+	    if (pilot.newBaseMonth==="true") {
+	      pilot.baseMonth=new Date(dateObj).toLocaleString('default', { month: 'long' })
+	      nbm="YES";
+	    }
+	    let pilotIndex = this.pilots.map(e => e.name).indexOf(pilot.instructor);
+	    if (pilotIndex>-1) pilot.instructorCert=this.pilots[pilotIndex].cert;
+	    else pilot.instructorCert="";
+      var fields={"Cert Type1":[certType],
+                  "CertType":[certType],
+                  "Pilots Name":[pilot.name],
+                  "Date of Birth":[pilot.dateOfBirth],
+                  "Cert Number":[pilot.cert],
+                  "Medical Class":[medClass],
+                  "Medical EXP":[pilot.medicalDate],
+                  "Date of Check":[dateObj],
+                  "Check Airman":[pilot.checkAirman],
+                  "Check Airman Cert #":[pilot.checkAirmanCert],
+                  "Group44":["44"],
+                  "44":"X",
+                  "BaseMonth":[pilot.baseMonth.toUpperCase()],
+                  "NewBaseMonth":[nbm],
+                  "Group24":["X"],
+                  "Text1":[pilot.instructor+'/'+pilot.instructorCert]
+      };
+      if (PDFFileName!=="ROT") fields.Dropdown19=[trainingClass];
+      //this.formTypes.forEach(form=>{
+        //if (form.radio) {
+          let fieldName,frequency,eventIndex;
+          //switch (form.label) {
+            if (pilot.BasicIndoc&&pilot.BasicIndoc==="true") {//"Basic Indoc": 
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('BasicIndoc');
+              frequency=this.appConfig.trainingEvents[eventIndex].frequency;
+              fieldName = "Check Box1";
+              fields[fieldName]=["X"];
+              fields.Dropdown2=[pilot.baseMonth.toUpperCase()];
+              fieldName="BI TEST EXPIRATION";
+              fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
+              fieldName="Instructor 1";
+              fields[fieldName]=[pilot.instructor];
+              if (PDFFileName==="ROT") fields.Dropdown1=["S"];
+              fieldName="Date1_af_date";
+              fields[fieldName]=[dateObj];
+              fieldName="Instructor 2";
+              fields[fieldName]=[pilot.instructor];
+              if (PDFFileName==="ROT") fields.Dropdown2=["S"];
+              fieldName="Date2_af_date";
+              fields[fieldName]=[dateObj];
+            }
+            if ((pilot.C208Ground&&pilot.C208Ground==="true")||
+                    (pilot.C408Ground&&pilot.C408Ground==="true")||
+                    (pilot.B190Ground&&pilot.B190Ground==="true")||
+                    (pilot.BE20Ground&&pilot.BE20Ground==="true")||
+                    (pilot.C212Ground&&pilot.C212Ground==="true")
+                    ){
+              frequency='12';
+              fieldName="Instructor 8";
+              fields[fieldName]=[pilot.instructor];
+              if (PDFFileName==="ROT") fields.Dropdown8=["S"];
+              fieldName="Date8_af_date";
+              fields[fieldName]=[dateObj];
+              fieldName="Instructor 9";
+              fields[fieldName]=[pilot.instructor];
+              if (PDFFileName==="ROT") fields.Dropdown9=["S"];
+              fieldName="Date9_af_date";
+              fields[fieldName]=[dateObj];
+            }
+            if ((pilot.C208PIC&&pilot.C208PIC==="true")||
+                    (pilot.C408PIC&&pilot.C408PIC==="true")||
+                    (pilot.C408SIC&&pilot.C408SIC==="true")||
+                    (pilot.B190PIC&&pilot.B190PIC==="true")||
+                    (pilot.B190SIC&&pilot.B190SIC==="true")||
+                    (pilot.BE20PIC&&pilot.BE20PIC==="true")||
+                    (pilot.C212PIC&&pilot.C212PIC==="true")||
+                    (pilot.C212SIC&&pilot.C212SIC==="true")
+                    ){
+              frequency='12';
+              fieldName="AC ORAL/WRITTEN EXP";
+              fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
+              fields.Dropdown3=[pilot.baseMonth.toUpperCase()];
+              fieldName = "Check Box2";
+              fields[fieldName] =["X"];
+              fieldName="293 EXP";
+              fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
+              fields.Dropdown4=[pilot.baseMonth.toUpperCase()];
+              fieldName = "Check Box3";
+              fields[fieldName] =["X"];
+              fieldName="Instructor 10";
+              fields[fieldName]=[pilot.instructor];
+              if (PDFFileName==="ROT") fields.Dropdown10=["S"];
+              fieldName="Date10_af_date";
+              fields[fieldName]=[dateObj];
+            }
+            if ((pilot.C208PIC&&pilot.C208PIC==="true")||
+                  (pilot.C408PIC&&pilot.C408PIC==="true")||
+                  (pilot.C212PIC&&pilot.C212PIC==="true")||
+                  (pilot.B190PIC&&pilot.B190PIC==="true")||
+                  (pilot.BE20PIC&&pilot.BE20PIC==="true")
+                  ){
+              fieldName="Check Box7";
+              fields[fieldName]=["X"];
+            }
+            if ((pilot.C408SIC&&pilot.CS08PIC==="true")||
+                  (pilot.C212SIC&&pilot.C212SIC==="true")||
+                  (pilot.B190SIC&&pilot.B190SIC==="true")
+                  ){
+              fieldName="Check Box8";
+              fields[fieldName]=["X"];
+            }
+            if ((pilot.C208PIC&&pilot.C208PIC==="true")||(pilot.C208Ground&&pilot.C208Ground==="true")){
+              fieldName="AC Type";
+              fields[fieldName]=["C208"];
+              fields.Dropdown26=["C208"];
+              //fields.Dropdown17=["C208"];
+              fields.Dropdown25=["C208"];
+            }
+            if ((pilot.BE20PIC&&pilot.BE20PIC==="true")||(pilot.BE20Ground&&pilot.BE20Ground==="true")){
+              fieldName="AC Type";
+              fields[fieldName]=["BE20"];
+              fields.Dropdown25=["BE20"];
+              fields.Dropdown26=["BE20"];
+              //fields.Dropdown17=["BE20"];
+            }
+            if ((pilot.B190PIC&&pilot.B190PIC==="true")||(pilot.B190SIC&&pilot.B190SIC==="true")||(pilot.B190Ground&&pilot.B190Ground==="true")){
+              fieldName="AC Type";
+              fields[fieldName]=["B190"];
+              fields.Dropdown25=["B190"];
+              fields.Dropdown26=["B190"];
+              //fields.Dropdown17=["B190"];
+            }
+            if ((pilot.C408PIC&&pilot.C408PIC==="true")||(pilot.C408SIC&&pilot.C408SIC==="true")||(pilot.C408Ground&&pilot.C408Ground==="true")){
+              fieldName="AC Type";
+              fields[fieldName]=["C408"];
+              fields.Dropdown25=["C408"];
+              fields.Dropdown26=["C408"];
+              //fields.Dropdown17=["C408"];
+            }
+            if ((pilot.C212PIC&&pilot.C212PIC==="true")||(pilot.C212SIC&&pilot.C212SIC==="true")||(pilot.C212Ground&&pilot.C212Ground==="true")){
+              fieldName="AC Type";
+              fields[fieldName]=["C212"];
+              fields.Dropdown25=["C212"];
+              fields.Dropdown26=["C212"];
+              //fields.Dropdown17=["C212"];
+            }
+            if (pilot['far299']&&pilot['far299']==="true") {//case "293(b) & 299": 
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far299');
+              frequency=this.appConfig.trainingEvents[eventIndex].frequency;
+              fieldName = "Check Box6";
+              fields[fieldName] =["X"];
+              fields.Dropdown4=[pilot.baseMonth.toUpperCase()];
+              fields.Dropdown7=[pilot.baseMonth.toUpperCase()];
+              fieldName="299 Enroute Check EXP";
+              fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
+            }
+            if (pilot['far297g']&&pilot['far297g']==="true") {//case "297":
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far297g');
+              frequency=this.appConfig.trainingEvents[eventIndex].frequency; 
+              fieldName="297(G) Autopilot EXP";
+              fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
+              fields.Dropdown6=[pilot.baseMonth.toUpperCase()];
+              fieldName = "Check Box5";
+              fields[fieldName]=["X"];
+            }
+            if (pilot['far297']&&pilot['far297']==="true") {//case "297":
+              eventIndex = this.appConfig.trainingEvents.map(e => e.name).indexOf('far297');
+              frequency=this.appConfig.trainingEvents[eventIndex].frequency; 
+              fieldName = "Check Box4";
+              let i=this.months.indexOf(pilot.baseMonth);
+              if (i<6) i+=6;
+              else i-=6;
+              fields.Dropdown5=[this.months[i].toUpperCase()];
+              fields[fieldName]=["X"];
+              fieldName="297 EXP";
+              fields[fieldName]=[this.getExp(pilot.baseMonth,dateObj,frequency,1)];
+            }
+            if (pilot.Hazmat&&pilot.Hazmat==="true") {//case "HAZMAT":
+              fieldName="Instructor 3";
+              fields[fieldName]=[pilot.instructor];
+              if (PDFFileName==="ROT") fields.Dropdown3=["S"];
+              fieldName="Date3_af_date";
+              fields[fieldName]=[dateObj];
+            }
+            //default:
+            //  break;
+          //}
+        
+      console.log(fields);
+      //return;
+      this.http({ url: "/pdf?filename=" + PDFFileName + ".pdf", 
+          method: "GET", 
+          headers: { 'Accept': 'application/pdf' }, //'text/plain'
+          responseType: 'arraybuffer' })
+        .then(response=> {
+          var filled_pdf; // Uint8Array
+  		    filled_pdf = pdfform().transform(response.data, fields);
+  		    //console.log(pdfform().list_fields(response.data));
+  		    var blob = new Blob([filled_pdf], {type: 'application/pdf'});
+  		    
+  		    var filename=PDFFileName + "_" + pilot.name + '_' + year + '_' + month + '_' + day + '.pdf';
+  	      saveAs(blob, filename);
+  	      //unspin buttons
+  	      this.loading=false;
+  	      //
+        }).catch(err=>{
+          alert(err);
+          console.log(err);
+          this.loading=false;
+        });
+    }
 }
 
 angular.module('rotApp')
