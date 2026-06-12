@@ -52,7 +52,7 @@ class RecordsComponent {
         //select training types
         let recordIndex = 0;
         if (formData._id) recordIndex= this.records.map(e => e._id).indexOf(formData._id);
-        Object.assign(this.records[recordIndex],...formData);
+        Object.assign(this.records[recordIndex],formData);
         this.records[recordIndex].trainingTypeArray=[];
         for (let key in this.records[recordIndex]) {
           if (this.appConfig.trainingEventKeys.indexOf(key)<0) continue;
@@ -239,7 +239,8 @@ class RecordsComponent {
     if (!p) return {};
     return {
       _id:p._id,name:p.name,quals:p.quals,removals:p.removals,ratings:p.ratings,other:p.other,otherDescription:p.otherDescription,
-      cfi:p.cfi,commercial:p.commercial,atp:p.atp,cert:p.cert,medicalClass:p.medicalClass,medicalDate:p.medicalDate
+      cfi:p.cfi,commercial:p.commercial,atp:p.atp,cert:p.cert,medicalClass:p.medicalClass,medicalDate:p.medicalDate,
+      highMinimumsC208:p.highMinimumsC208,highMinimumsC408:p.highMinimumsC408,highMinimumsC212:p.highMinimumsC212,highMinimumsB190:p.highMinimumsB190,highMinimumsBE20:p.highMinimumsBE20
     };
   }
   
@@ -334,7 +335,7 @@ class RecordsComponent {
               this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
                 this.fullPilot.medicalDate = this.dateString;
                 let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-                if (index>-1) Object.assign(this.pilots[index], ...doc );
+                if (index>-1) Object.assign(this.pilots[index], doc );
                 this.toaster.success('Success','medical updated to ' + this.dateString);
                 this.init();
               }).catch(err=>{console.log(err)});
@@ -415,7 +416,7 @@ class RecordsComponent {
             this.toaster.success('Success','Pilot Profile Updated');
             this.fullPilot[expKey] = newDate.toLocaleDateString();
             let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-            if (index>-1) Object.assign(this.pilots[index], ...doc );
+            if (index>-1) Object.assign(this.pilots[index], doc );
             //this.init();
           }).catch(err=>{console.log(err)});
         }
@@ -715,10 +716,10 @@ class RecordsComponent {
     console.log(this.pilot)
     this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:this.pilot}).then(res=>{
       let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-      if (index>-1) Object.assign(this.pilots[index], ...this.pilot );
+      if (index>-1) Object.assign(this.pilots[index], this.pilot );
       let navIndex=this.scope.$root.nav.pilots.map(e=>e._id).indexOf(this.pilot._id);
       if (navIndex>-1) this.scope.$root.nav.pilots[navIndex]=this.pilots[index];
-      
+      console.log(this.scope.$root.nav.pilots)
       this.toaster.success('Success','Pilot '+this.pilot.name+' is updated');
     }).catch(err=>{console.log(err)});
   }

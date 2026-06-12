@@ -246,7 +246,8 @@
                   <input style="width:250px;" type="text" ng-model="records.pilot.otherDescription" ng-if="records.pilot.other">
               </td>
             </tr></tbody>
-          </table><table class="table table-bordered">
+          </table>
+          <table class="table table-bordered">
             <thead><tr>
               <th class="tight">Ratings</th>
             </tr></thead>
@@ -257,6 +258,22 @@
               </td>
             </tr></tbody>
           </table>
+          <table class="table table-bordered">
+            <thead><tr>
+              <th class="tight">High Minimums C208</th>
+              <th class="tight">High Minimums C408</th>
+              <th class="tight">High Minimums C212</th>
+              <th class="tight">High Minimums B190</th>
+              <th class="tight">High Minimums BE20</th>
+            </tr></thead>
+            </tbody>
+            <tbody><tr>
+              <td><input type="checkbox" ng-model="records.pilot.highMinimumsC208" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
+              <td><input type="checkbox" ng-model="records.pilot.highMinimumsC408" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
+              <td><input type="checkbox" ng-model="records.pilot.highMinimumsC212" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
+              <td><input type="checkbox" ng-model="records.pilot.highMinimumsB190" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
+              <td><input type="checkbox" ng-model="records.pilot.highMinimumsBE20" style="transform: scale(2);margin-left:20px;margin-top:12px"></td>
+            </tr></tbody>
           </table>
           <table class="table table-bordered">
             <thead><tr style="font-size:10px;font-weight:bold;height:40px;">
