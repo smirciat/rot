@@ -861,7 +861,7 @@ class RecordsComponent {
         
             // Convert indexes (0, 0) into Excel standard notation keys ("A1")
             const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-            if (!worksheet[cellRef].v) worksheet[cellRef]={t:'s',v:''};
+            if (!worksheet[cellRef]||!worksheet[cellRef].v) worksheet[cellRef]={t:'s',v:''};
             // Initialize cell structure
             worksheet[cellRef].s= {
                     font: { name: "Arial", sz: 10, bold: false, underline:false, color: { rgb: "000000" } },
