@@ -10,13 +10,13 @@ class PilotEvalsComponent {
   
   $onInit(){
     this.http.get('/api/evaluations').then(res=>{
-      this.evals=res.data.filter(e=>{return !e.isArchived});
-      this.evals.forEach(e=>{e.date=new Date(e.Date_af_date).toLocaleDateString()});
+      this.evals=res.data.filter(evaluation=>{return !evaluation.isArchived});
+      this.evals.forEach(evaluation=>{evaluation.date=new Date(evaluation.Date_af_date).toLocaleDateString()});
       console.log(this.evals)
       this.filterEvals();
       this.pilotNames=[];
-      this.evals.forEach(e=>{
-        if (this.pilotNames.indexOf(e.Pilot_Name)===-1) this.pilotNames.push(e.Pilot_Name);
+      this.evals.forEach(evaluation=>{
+        if (this.pilotNames.indexOf(evaluation.Pilot_Name)===-1) this.pilotNames.push(evaluation.Pilot_Name);
       });
       console.log(this.pilotNames)
     });
@@ -27,32 +27,31 @@ class PilotEvalsComponent {
   }
   
   filterEvals(){
-    this.filteredEvals=this.evals.filter(e=>{
-      return e.Pilot_Name===this.currentPilot;
+    this.filteredEvals=this.evals.filter(evaluation=>{
+      return evaluation.Pilot_Name===this.currentPilot;
     }).sort((a,b)=>new Date(a.date)-new Date(b.date));
     let hrs=0;
-    this.filteredEvals.forEach(e=>{
-      hrs+=e.Hours*1;
-      e.cumHours=hrs;
+    this.filteredEvals.forEach(evaluation=>{
+      hrs+=evaluation.Hours*1;
+      evaluation.cumHours=hrs;
     });
   }
   
-  deleteEval(e,index){
+  deleteEval(evaluation,index){
     let obj={isArchived:true};
-    this.http.patch('/api/evaluations/'+e._id,obj).then(res=>{
+    this.http.patch('/api/evaluations/'+evaluation._id,obj).then(res=>{
       this.filteredEvals.splice(index,1);
     });
   }
   
-  viewEval(e){
-    this.http({ url: "/fileserver/attachments?filename=" + e.filename,
+  viewEval(evaluation){
+    this.http({ url: "/fileserver/attachments?filename=" + evaluation.filename,
       method: "GET", 
       responseType: 'arraybuffer' })
     .then(response=> {
 	    let blob = new Blob([response.data], { type: 'application/pdf' });
 	    var fileURL = URL.createObjectURL(blob);
 	    window.open(fileURL, '_blank');
-      //saveAs(blob, e.filename);
     }).catch(err=>{
       alert("File Not Found");
       console.log(err);
