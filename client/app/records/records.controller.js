@@ -29,6 +29,8 @@ class RecordsComponent {
     this.dateString=new Date().toLocaleDateString();
     this.maxHeight=70;
     this.newPilot={};
+    this.year=new Date().getFullYear();
+    this.quarter=1;
     this.uploaderEmails=['fen@beringair.com','nathaniel@beringair.com','nathanielwkolson@gmail.com','smirciat@gmail.com','kalebjanke@gmail.com','ssman42@gmail.com'];
     this.approvalEmails=['fen@beringair.com','nathaniel@beringair.com','nathanielwkolson@gmail.com','smirciat@gmail.com'];
       this.pilotsOld=[];
@@ -735,8 +737,10 @@ class RecordsComponent {
   }
   
   update(record,index){
-    console.log(record)
     if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return this.toaster.error('Error','You Need to Select at least one training type before saving');
+    if (record.checkAirman&&(!record.aircraft||record.aircraft==='none')) return this.toaster.error('Error','An aircraft has to be selected if the event is a checkride');
+    record.dateObj=new Date(record.date);
+    console.log(record)
     //create or update record in firebase, if it was a new record, unshift a new new one
     this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
       this.toaster.success('Success','Record is Updated');
@@ -748,7 +752,7 @@ class RecordsComponent {
   
   createNewRecord(){
     let nr=JSON.parse(JSON.stringify(this.fullPilot));
-    let newObj={name:this.fullPilot.name,pilotNumber:this.fullPilot._id,date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })};
+    let newObj={name:this.fullPilot.name,pilotNumber:this.fullPilot._id,dateObj:new Date(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })};
     Object.assign(nr, newObj );
     delete nr._id;
     return nr;
@@ -772,6 +776,148 @@ class RecordsComponent {
       this.records.splice(index,1);
     })
     .catch(err=>{console.log(err)});
+  }
+  
+  quarterlyReport(quarter,year){
+    
+    quarter=quarter||this.quarter||1;
+    year = year||this.year||new Date().getFullYear();
+    let records=[];
+    let startMonth=1;
+    if (quarter>1) {
+      startMonth=(quarter-1)*3+1;
+    }
+    let endMonth=startMonth+2;
+    if (year.length===2) year ='20'+year;
+    let startDate=new Date(startMonth+'/1/'+year);
+    startDate.setHours(0, 0, 0, 0); 
+    const today = new Date(endMonth+'/1/'+year);
+    let endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    endDate.setHours(23, 0, 0, 0); 
+    let query={collection:'records',parameter:'dateObj',operator:'>=',value:startDate,parameter2:'dateObj',operator2:'<=',value2:endDate,timestampBoolean:false};
+    
+    this.http.post('/api/things/firebaseQuery',query).then(res=>{
+      let header=["Date","Pilot","Certificate Number","Aircraft",
+            "135.293a", "135.293b", "135.297", "135.297g", "135.299",
+            "Initial Recurrent","Check Airman","Pass Fail","Additional Instruction Given","outcome"];
+      res.data.forEach(r=>{
+        if (!r.checkAirman||r.checkAirman==='none') return;
+        let obj={Date:r.date,Pilot:r.name,"Certificate Number":r.cert,Aircraft:r.aircraft,
+            "135.293a":"", "135.293b":"", "135.297":"", "135.297g":"", "135.299":"",
+            "Initial Recurrent":r.trainingType,"Pass Fail":r.result,
+            "Check Airman":r.checkAirman,"Additional Instruction Given":r.additionalInstruction||"None",outcome:r.outcome||""
+        };
+        if (r[r.aircraft+'PIC']||r[r.aircraft+'SIC']||r[r.aircraft]) {
+          obj["135.293a"]='2,3';
+          obj["135.293b"]='X';
+        }
+        if (r.far297) obj["135.297"]="X";
+        if (r.far297g) obj["135.297g"]="X";
+        if (r.far299) obj["135.299"]="X";
+        if (!r.result) obj["Pass Fail"]="Satisfactory";
+        records.push(obj);
+      }); 
+      this.http({ url: "/pdf?filename=quarterly.xlsx", 
+        method: "GET", 
+        headers: { 'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }, //'text/plain'
+        responseType: 'arraybuffer' })
+      .then(response=> {
+        //response.data is the arraybuffer
+        const workbook = XLSX.read(response.data, { type: "array", cellStyles: true, cellNF: true, cellDates: true });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const mergeRange = { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } };
+        const mergeRange1 = { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } }; 
+        const mergeRange2 = { s: { r: 2, c: 4 }, e: { r: 2, c: 8 } }; 
+        worksheet['!merges'] = [mergeRange,mergeRange1,mergeRange2];
+        for (let r = mergeRange.s.r; r <= mergeRange.e.r; r++) {
+          for (let c = mergeRange.s.c; c <= mergeRange.e.c; c++) {
+        
+            // Convert indexes (0, 0) into Excel standard notation keys ("A1")
+            const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+            
+            // Initialize cell structure
+            worksheet[cellRef] = {
+                t: 's',
+                v: (r === mergeRange.s.r && c === mergeRange.s.c) ? "Bering Air" : "", // Data only in top-left
+                s: {
+                    font: { name: "Cambria", sz: 20, bold: true, underline:true, italic:true, color: { rgb: "000000" } },
+                    fill: { patternType: "solid", fgColor: { rgb: "fbfb00" } },
+                    alignment: { horizontal: "left", vertical: "center" },
+                    border: {},
+                    numFmt: "$#,##0.00"
+                }
+            };
+    
+            // Construct outer border perimeter piece-by-piece
+            if (r === mergeRange.s.r) worksheet[cellRef].s.border.top = { style: "thin", color: { rgb: "FF000000" } };
+            if (r === mergeRange.e.r) worksheet[cellRef].s.border.bottom = { style: "thin", color: { rgb: "FF000000" } };
+            if (c === mergeRange.s.c) worksheet[cellRef].s.border.left = { style: "thin", color: { rgb: "FF000000" } };
+            if (c === mergeRange.e.c) worksheet[cellRef].s.border.right = { style: "thin", color: { rgb: "FF000000" } };
+          }
+        }
+        for (let r = 2; r <= 3; r++) {
+          for (let c = 0; c <= 13; c++) {
+        
+            // Convert indexes (0, 0) into Excel standard notation keys ("A1")
+            const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+            if (!worksheet[cellRef].v) worksheet[cellRef]={t:'s',v:''};
+            // Initialize cell structure
+            worksheet[cellRef].s= {
+                    font: { name: "Arial", sz: 10, bold: false, underline:false, color: { rgb: "000000" } },
+                    fill: { patternType: "solid", fgColor: { rgb: "bebebe" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: {left : { style: "thin", color: { rgb: "FF000000" } },right : { style: "thin", color: { rgb: "FF000000" } }},
+                    numFmt: "$#,##0.00"
+                };
+            if (c>=4&&c<=8){
+              if (r===2) worksheet[cellRef].s.border={bottom : { style: "thin", color: { rgb: "FF000000" } }}; 
+              if (r===3) worksheet[cellRef].s.border.top={ style: "thin", color: { rgb: "FF000000" } };
+            }
+            
+          }
+        }
+        for (let r = mergeRange1.s.r; r <= mergeRange1.e.r; r++) {
+          for (let c = mergeRange1.s.c; c <= mergeRange1.e.c; c++) {
+            const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+            worksheet[cellRef] = {
+                t: 's',
+                v: (r === mergeRange.s.r && c === mergeRange.s.c) ? "Check Airman Quarterly Report" : "", // Data only in top-left
+                s: {
+                    font: { name: "Arial", sz: 10, bold: false, underline:false, color: { rgb: "000000" } },
+                    fill: { patternType: "solid", fgColor: { rgb: "fb9700" } },
+                    alignment: { horizontal: "left", vertical: "center" },
+                    numFmt: "$#,##0.00"
+                }
+            };
+          }
+        }
+        XLSX.utils.sheet_add_json(worksheet, records, { header: header,origin:"A5",skipHeader:true });
+        worksheet['A2'].v = 'Check Airman Quarterly Report ' + year + ' Quarter ' + quarter;
+        //center all appended cells
+        const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+        for (let R = 4; R <= range.e.r; ++R) {
+          for (let C = 0; C <= 13; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ c: C, r: R });
+            
+            // Check if the cell exists before applying styles
+            if (!worksheet[cellAddress]) worksheet[cellAddress]={t:'s',v:''};
+            worksheet[cellAddress].s = {
+              font: { name: "Arial", sz: 10, bold: false, underline:false, color: { rgb: "000000" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border:{
+                top: { style: "thin", color: { rgb: "000000" } },
+                bottom: { style: "thin", color: { rgb: "000000" } },
+                left: { style: "thin", color: { rgb: "000000" } },
+                right: { style: "thin", color: { rgb: "000000" } }
+              }
+            };
+          }
+        }
+        XLSX.writeFile(workbook,"CheckAirmanQuarterly_8E_"+year+"_"+quarter+".xlsx", { cellStyles: true });
+      });
+    });
   }
   
   isItDisabled(button){

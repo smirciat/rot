@@ -38,6 +38,31 @@
         </div>
       </div>
     </div>
+    <div class="box">
+      <h3 ng-click="showQuarterly=!showQuarterly">Check Airman Quarterly Report
+        <span ng-if="showQuarterly">
+          <i class="fa-solid fa-square-caret-up"></i>
+        </span>
+        <span ng-if="!showQuarterly">
+          <i class="fa-solid fa-square-caret-down"></i>
+        </span>
+      </h3>
+      <div ng-if="showQuarterly">
+        Quarter:
+        <ui-select ng-model="records.quarter" theme="bootstrap" dropdown-position="down">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in [1,2,3,4]" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <br>
+        Year:
+        <br>
+        <textarea rows="1" style="width:10em;" ng-model="records.year"></textarea>
+        <br><br>
+        <button class="btn btn-success" ng-click="records.quarterlyReport()">Run Report and Download</button>
+      </div>
+    </div>
     <hr>
     <h3>Select One or More Files to Upload</h3>
     <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
@@ -126,11 +151,15 @@
                 <th>Emp#</th>
                 <th>Date</th>
                 <th>Initial/Recurrent</th>
+                <th>Aircraft</th>
                 <th>Type</th>
                 <th>Base Month</th>
                 <th>New Base</th>
                 <th>Instructor</th>
-                <th>CheckAriman</th>
+                <th>CheckAirman</th>
+                <th>Result</th>
+                <th>Additional Instruction</th>
+                <th>Outcome</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -169,6 +198,12 @@
                     <div ng-bind-html="combo | highlight: $select.search"></div>
                   </ui-select-choices>
                 </ui-select></td>
+                <td><ui-select ng-model="record.aircraft" theme="bootstrap" ng-disabled="disabled">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="choice in ['none','C208','C408PIC','C408SIC','C212PIC','C212SIC','B190PIC','B190SIC','BE20']" >
+                    <div ng-bind-html="choice | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
                 <td ng-click="records.radioModal(record)" style="padding-top:15px;">
                   <p tooltip-placement="auto" uib-tooltip="Click to Edit">{{records.displayArray(record)}}</p>
                 </td>
@@ -184,20 +219,27 @@
                     <div ng-bind-html="choice | highlight: $select.search"></div>
                   </ui-select-choices>
                 </ui-select></td>
-                <td ng-hide="record.newinstructor"><ui-select ng-model="record.instructor" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('instructor',record)">
+                <td><ui-select ng-model="record.instructor" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('instructor',record)">
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="instructor in records.instructors" >
                     <div ng-bind-html="instructor | highlight: $select.search"></div>
                   </ui-select-choices>
                 </ui-select></td>
-                <td ng-show="record.newinstructor"><input class="form-control" ng-model="record.instructor" type="text"></td>
-                <td ng-hide="record.newcheckAirman"><ui-select ng-model="record.checkAirman" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('checkAirman',record)">
+                
+                <td><ui-select ng-model="record.checkAirman" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('checkAirman',record)">
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="instructor in records.instructors" >
                     <div ng-bind-html="instructor | highlight: $select.search"></div>
                   </ui-select-choices>
                 </ui-select></td>
-                <td ng-show="record.newcheckAirman"><input class="form-control" ng-model="record.checkAirman" type="text"></td>
+                <td><ui-select ng-model="record.result" theme="bootstrap" ng-disabled="disabled">
+                  <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="item in ['Satisfactory','Unsatisfactory','Discontinued']" >
+                    <div ng-bind-html="item | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select></td>
+                <td><textarea rows="1" style="width:10em;" ng-model="record.additionalInstruction"></textarea></td>
+                <td><textarea rows="1" style="width:4em;" ng-model="record.outcome"></textarea></td>
                 <td><button class="btn btn-success" ng-disabled="records.isItDisabled()" ng-click="records.update(record,$index)">Save</button></td>
                 <td><button class="btn btn-warning" ng-disabled="records.isItDisabled('approve')" ng-click="records.approve(record,$index)">Approve</button></td>
                 <td><button class="btn btn-danger" ng-disabled="records.isItDisabled()" ng-click="records.delete(record,$index)">Delete</button></td>

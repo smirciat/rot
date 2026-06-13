@@ -8,7 +8,7 @@ body {
 }
 .box {
   display: inline-block;
-  width: 48%;          /* Adjust width so they fit on one line */
+  width: 32%;          /* Adjust width so they fit on one line */
   vertical-align: top; /* Keeps them aligned at the top */
   box-sizing: border-box; 
 }
