@@ -25,15 +25,16 @@ class NavbarController {
   isCollapsed = true;
   //end-non-standard
 
-  constructor(Auth,$http) {
+  constructor(Auth,$http,$timeout) {
     this.isLoggedIn = Auth.isLoggedIn;
     this.isAdmin = Auth.isAdmin;
     this.getCurrentUser = Auth.getCurrentUser;
     this.http=$http;
+    this.timeout=$timeout;
   }
   
   $onInit(){
-    this.init();
+    this.timeout(()=>{this.init()},200);
   }
   
   init(){
