@@ -1,25 +1,44 @@
 <div ng-if="sicHours.loggedIn()">
     <h4>Cessna 408 SIC Flight Log</h4>
     <p>Pilot Name: {{sicHours.pilot.displayName}} , Certificate Number: {{sicHours.pilot.cert}}</p>
-    <button class="btn btn-success" ng-click="sicHours.openPdf()">Create and Fill PDF Form(s)</button>
+    <button class="btn btn-success" ng-click="sicHours.openPdf()">Create and Fill SIC PDF Form(s) for 408</button>
     <button class="btn btn-primary" ng-repeat="fileURL in sicHours.fileURLs track by $index" ng-click="sicHours.viewPage($index)">
         View Page {{$index+1}}</button>
+    <br>
+    Select Aircraft: Cumulative Hours: {{sicHours.flights[sicHours.flights.length-1].cumHours}}
+    <div style="width: 300px;">
+        <ui-select ng-model="sicHours.aircraftSelected" theme="bootstrap" dropdown-position="down" on-select="sicHours.filterFlights()">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="item in sicHours.aircraft" >
+            <div ng-bind-html="item | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+    </div>
+    <hr>
     <table class="table table-bordered">
         <tr>
             <th>Date</th>
+            <th>Type</th>
+            <th>Registration</th>
             <th>Flt#</th>
             <th>Route</th>
-            <th>TO & Land</th>
             <th>PIC</th>
+            <th>PIC TO & Land</th>
+            <th>SIC</th>
+            <th>SIC TO & Land</th>
             <th>Flt Hours</th>
             <th>Cum Hours</th>
         </tr>
         <tr ng-repeat="flight in sicHours.flights | orderBy:'-' track by $index">
             <td>{{flight.dateString}}</td>
+            <td>{{flight.acftType}}</td>
+            <td>{{flight.acftNumber}}</td>
             <td>{{flight.flightNumber}}</td>
             <td>{{flight.route.toString()}}</td>
-            <td>{{flight.sicTO + ' / ' + flight.sicLND}}</td>
             <td>{{flight.pilot}}</td>
+            <td>{{flight.route.length-1-flight.sicTO}} / {{flight.route.length-1-flight.sicLND}}</td>
+            <td>{{flight.coPilot}}</td>
+            <td>{{flight.sicTO + ' / ' + flight.sicLND}}</td>
             <td>{{(flight.flightTime/60).toFixed(1)}}</td>
             <td>{{flight.cumHours}}</td>
         </tr>

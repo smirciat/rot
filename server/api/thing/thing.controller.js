@@ -136,7 +136,7 @@ async function getDocument(collectionName, documentId) {
   return data;
 }
 
-export async function getCollectionQuery(collectionName,limit,parameter,operator,value,timestampBoolean,parameter2,operator2,value2) {
+export async function getCollectionQuery(collectionName,limit,parameter,operator,value,timestampBoolean,parameter2,operator2,value2,queryOr) {
   try {
     for (let s of [collectionName,limit,parameter,operator,value,timestampBoolean]){
       console.log(s);
@@ -149,11 +149,21 @@ export async function getCollectionQuery(collectionName,limit,parameter,operator
     let date1,date2,date3;
     let querySnapshot, querySnapshot1, querySnapshot2;
     if (!value2) querySnapshot = await collectionRef.where(parameter, operator , value).orderBy('date', 'desc').limit(limit).get();
-    else querySnapshot = await collectionRef.where(parameter, operator , value).where(parameter2, operator2 , value2).limit(limit).get();
+    else {
+      if (queryOr) {
+        querySnapshot = await collectionRef.where(parameter, operator , value).limit(limit).get();
+        querySnapshot1 = await collectionRef.where(parameter2, operator2 , value2).limit(limit).get();
+      }
+      else querySnapshot = await collectionRef.where(parameter, operator , value).where(parameter2, operator2 , value2).limit(limit).get();
+    }
     
     let mergedData=[];
     
     querySnapshot.forEach((doc) => {
+      mergedData.push(doc);
+      //console.log(doc.id, '=>', doc.data());
+    });
+    if (querySnapshot1) querySnapshot1.forEach((doc) => {
       mergedData.push(doc);
       //console.log(doc.id, '=>', doc.data());
     });
@@ -250,7 +260,9 @@ export async function firebaseQuery(req,res){
     let operator=req.body.operator||'==';
     let value=req.body.value||'933';
     let timestampBoolean=req.body.timestampBoolean||false;
-    const result=await getCollectionQuery(collection,limit,parameter,operator,value,timestampBoolean,req.body.parameter2,req.body.operator2,req.body.value2);
+    let queryOr=req.body.queryOr||false;
+    if (!req.body.operator2&&req.body.parameter2) req.body.operator2="==";
+    const result=await getCollectionQuery(collection,limit,parameter,operator,value,timestampBoolean,req.body.parameter2,req.body.operator2,req.body.value2,queryOr);
     let array=collectionToArray(result);
     return res.status(200).json(array);
   }
