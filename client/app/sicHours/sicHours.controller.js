@@ -3,16 +3,20 @@
 (function(){
 
 class SicHoursComponent {
-  constructor($http,$timeout,$scope) {
+  constructor($http,$timeout,$scope,$state) {
+    this.state=$state;
     this.http=$http;
     this.timeout=$timeout;
     this.scope=$scope;
     this.queryObj={collection:'flights',limit:3000,parameter:'coPilotEmployeeNumber',value:'1174',parameter2:'pilotEmployeeNumber',value2:'1174',queryOr:true};
-    this.aircraft=["ALL","Caravan","Beech 1900","King Air","Courier","Casa"];
+    this.aircraft=["ALL","Caravan","Beech 1900","King Air","Courier","Casa","Huey",'Robinson',"Astar","MD500"];
     this.aircraftSelected="Courier";
+    this.startDate=null;
+    this.endDate=null;
   }
   
   $onInit(){
+    if (!window.user) return this.state.go('main');
     this.scope.$watch('$root.nav.chosenPilot',(newVal,oldVal)=>{
       if (newVal&&oldVal) {
         this.queryObj.value=newVal._id.toString();
@@ -41,22 +45,29 @@ class SicHoursComponent {
     console.log(this.queryObj)
     this.http.post('/api/things/firebaseQuery',this.queryObj).then(res=>{
       console.log(res.data)
-      this.allFlights=res.data.filter(f=>f.acftNumber.substring(0,1)==="N"&&f.flightTime*1>0);
+      this.allFlights=res.data;
       this.filterFlights();
     }).catch(err=>{console.log(err)});
   }
   
   filterFlights(){
     this.allFlights=this.allFlights||[];
-    //filter all aircraft or single aircraft
-    if (this.aircraftSelected==="ALL") this.flights=JSON.parse(JSON.stringify(this.allFlights));
-    else if (this.aircraftSelected==="Courier") {
-      this.flights=this.allFlights.filter(f=>(f.acftType==="Courier"||f.acftType==="Sky Courier")
-        &&(new Date(this.startDate408)<=new Date(f.dateString)||(f.flightNumber&&f.flightNumber.substring(0,1)==="9")));
-    }
-    else {
-      this.flights=this.allFlights.filter(f=>(f.acftType===this.aircraftSelected));
-    }
+    console.log(this.startDate);
+    console.log(this.endDate)
+    this.flights=this.allFlights.filter(f=>{
+      if (f.acftNumber.substring(0,1)!=='N') return false;
+      if (f.flightTime*1<=0) return false;
+      if (this.startDate&&this.endDate) {
+        if (new Date(f.dateString) < this.startDate || new Date(f.dateString) > this.endDate) return false;
+      }
+      //filter all aircraft or single aircraft
+      if (this.aircraftSelected==="ALL") return true;//this.flights=JSON.parse(JSON.stringify(this.allFlights));
+      if (this.aircraftSelected==="Courier") {
+        return (f.acftType==="Courier"||f.acftType==="Sky Courier")
+          &&(new Date(this.startDate408)<=new Date(f.dateString)||(f.flightNumber&&f.flightNumber.substring(0,1)==="9"));
+      }
+      return f.acftType===this.aircraftSelected;
+    });
     this.flights.sort((a,b)=>new Date(a.dateString)-new Date(b.dateString));
     let cumMinutes=0;
     this.flights.forEach(f=>{
@@ -64,9 +75,13 @@ class SicHoursComponent {
       f.cumHours=(cumMinutes/60).toFixed(1);
       f.sicTO=0;
       f.sicLND=0;
+      f.picTO=0;
+      f.picLND=0;
       f.legArray.forEach(leg=>{
         f.sicLND+=(leg.sicDayLandings*1+leg.sicNightLandings*1);
         f.sicTO+=(leg.sicDayTO*1+leg.sicNightTO*1);
+        f.picLND+=(leg.picDayLandings*1+leg.picNightLandings*1);
+        f.picTO+=(leg.picDayTO*1+leg.picNightTO*1);
       });
     });
   }
@@ -131,6 +146,54 @@ class SicHoursComponent {
   
   viewPage(page){
     window.open(this.fileURLs[page], '_blank');
+  }
+  
+  upDate(key,field){
+    //this.isCollapsed=true;
+    const dateStringFormattedField=field+'DateStringFormatted';
+    const dateStringField=field+'DateString';
+    const dateField=field+'Date';
+    if (key==='string') this[dateField]=new Date(this[dateStringFormattedField]);
+    if (!this[dateField]) {
+      this[dateStringField]='';
+      this[dateStringFormattedField]='';
+      this.filterFlights();
+      return;
+    }
+    //if dates are out of order:
+    if (this.startDate>this.endDate&&this.startDate&&this.endDate) {
+      const temp=this.endDate;
+      this.endDate=this.startDate;
+      this.startDate=temp;
+      this.upDate('','start');
+      this.upDate('','end');
+      return;
+    }
+    this[dateStringField]=this[dateField].toLocaleDateString();
+    this[dateStringFormattedField]=this[dateField].toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'numeric',//''long', 
+        day: 'numeric' 
+    });
+    //if we have both dates, re-run the filter
+    //if (this.startDate&&this.endDate) {
+      this.filterFlights();
+    //}
+  }
+  
+  handle(event,field){
+    if (event.keyCode === 13 && !event.shiftKey) {
+      event.preventDefault(); 
+      this.upDate('string',field);
+    }
+  }
+  
+  clearDates(){
+    this.startDate=null;
+    this.endDate=null;
+    this.upDate('','start');
+    this.upDate('','end');
   }
 }
 

@@ -1,5 +1,6 @@
-<div ng-if="sicHours.loggedIn()">
-    <h4>Cessna 408 SIC Flight Log</h4>
+<div ng-if="sicHours.loggedIn()" style="margin-left:10px">
+    <h3>Pilot Flight Log</h3>
+    <h4>Flights Since April 2021</h4>
     <p>Pilot Name: {{sicHours.pilot.displayName}} , Certificate Number: {{sicHours.pilot.cert}}</p>
     <button class="btn btn-success" ng-click="sicHours.openPdf()">Create and Fill SIC PDF Form(s) for 408</button>
     <button class="btn btn-primary" ng-repeat="fileURL in sicHours.fileURLs track by $index" ng-click="sicHours.viewPage($index)">
@@ -14,6 +15,37 @@
           </ui-select-choices>
         </ui-select>
     </div>
+    <br>
+    <div class="points-row">
+        Start Date: 
+        <div style="padding-left:0px;padding-top:0px" class="input-group">
+          <input style="height:35px;width:150px;" type="text" ng-model="sicHours.startDateStringFormatted" 
+              ng-blur="sicHours.upDate('string','start')" ng-keydown="sicHours.handle($event,'start')">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-primary" ng-click="isStartDatepickerOpen = !isStartDatepickerOpen">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+          <input style="display:none" type="text" class="form-control" uib-datepicker-popup="EEEE MMM d, yyyy" ng-model="sicHours.startDate" 
+             ng-change="sicHours.upDate('','start')" is-open="isStartDatepickerOpen" datepicker-options="sicHours.datepickerOptions" 
+             ng-required="true" close-text="Close" alt-input-formats="altInputFormats"/>
+        </div>
+        End Date:
+        <div style="padding-left:0px;padding-top:0px" class="input-group">
+          <input style="height:35px;width:150px;" type="text" ng-model="sicHours.endDateStringFormatted" 
+              ng-blur="sicHours.upDate('string','end')" ng-keydown="sicHours.handle($event,'end')">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-primary" ng-click="isEndDatepickerOpen = !isEndDatepickerOpen">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+          <input style="display:none" type="text" class="form-control" uib-datepicker-popup="EEEE MMM d, yyyy" ng-model="sicHours.endDate" 
+             ng-change="sicHours.upDate('','end')" is-open="isEndDatepickerOpen" datepicker-options="sicHours.datepickerOptions" 
+             ng-required="true" close-text="Close" alt-input-formats="altInputFormats"/>
+        </div>
+        <button class="btn btn-warning" ng-click="sicHours.clearDates()">Clear Dates</button>
+    </div>
+    </b>
     <hr>
     <table class="table table-bordered">
         <tr>
@@ -36,7 +68,7 @@
             <td>{{flight.flightNumber}}</td>
             <td>{{flight.route.toString()}}</td>
             <td>{{flight.pilot}}</td>
-            <td>{{flight.route.length-1-flight.sicTO}} / {{flight.route.length-1-flight.sicLND}}</td>
+            <td>{{flight.picTO + ' / ' + flight.picLND}}</td>
             <td>{{flight.coPilot}}</td>
             <td>{{flight.sicTO + ' / ' + flight.sicLND}}</td>
             <td>{{(flight.flightTime/60).toFixed(1)}}</td>
