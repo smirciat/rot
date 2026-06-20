@@ -6,7 +6,8 @@
     <button class="btn btn-primary" ng-repeat="fileURL in sicHours.fileURLs track by $index" ng-click="sicHours.viewPage($index)">
         View Page {{$index+1}}</button>
     <br>
-    Select Aircraft: Cumulative Hours: {{sicHours.flights[sicHours.flights.length-1].cumHours}}
+    <br>
+    <p>Select Aircraft:</p>
     <div style="width: 300px;">
         <ui-select ng-model="sicHours.aircraftSelected" theme="bootstrap" dropdown-position="down" on-select="sicHours.filterFlights()">
           <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>

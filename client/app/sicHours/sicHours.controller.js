@@ -52,8 +52,6 @@ class SicHoursComponent {
   
   filterFlights(){
     this.allFlights=this.allFlights||[];
-    console.log(this.startDate);
-    console.log(this.endDate)
     this.flights=this.allFlights.filter(f=>{
       if (f.acftNumber.substring(0,1)!=='N') return false;
       if (f.flightTime*1<=0) return false;
@@ -61,7 +59,7 @@ class SicHoursComponent {
         if (new Date(f.dateString) < this.startDate || new Date(f.dateString) > this.endDate) return false;
       }
       //filter all aircraft or single aircraft
-      if (this.aircraftSelected==="ALL") return true;//this.flights=JSON.parse(JSON.stringify(this.allFlights));
+      if (this.aircraftSelected==="ALL") return true;
       if (this.aircraftSelected==="Courier") {
         return (f.acftType==="Courier"||f.acftType==="Sky Courier")
           &&(new Date(this.startDate408)<=new Date(f.dateString)||(f.flightNumber&&f.flightNumber.substring(0,1)==="9"));

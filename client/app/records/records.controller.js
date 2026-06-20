@@ -39,7 +39,7 @@ class RecordsComponent {
       this.suffices = ['baseIndoc','baseHazmat','base293','base297','-','base208','base1900','baseKingAir','base408','baseCasa'];
       this.trainingTypes=['none','initial','recurrent', 'transition', 'upgrade', 'requalification'];
       this.types=['none','BasicIndoc','Hazmat','far299','far297','far297g','C208','B190','BE20','C408','C212'];
-      this.instructors=['none','Kyle Lefebvre','Nick Hajdukovich','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans','Michael K. Evans','Andy Smircich','Neill Toelle','Josh Krebiehl','Tim Kunkel','Frank Parker','Tim Hopley','Scott Gordon'];
+      this.instructors=['none','not listed','Kyle Lefebvre','Nick Hajdukovich','Fen Kinneen','Ryan Woehler','Nathaniel Olson','Mike R. Evans','Michael K. Evans','Andy Smircich','Neill Toelle','Josh Krebiehl','Tim Kunkel','Frank Parker','Tim Hopley','Scott Gordon'];
       this.formTypes=[];
       for (var i=0;i<formLabels.length;i++) {
         this.formTypes.push({label:formLabels[i],suffix:this.suffices[i],radio:false,id:i});
@@ -199,9 +199,15 @@ class RecordsComponent {
   fillCert(type,record){
     if (type==='instructor'){
       if (record.instructor==='none') record.instructor=null;
+      if (record.instructor==='not listed') {
+        record.instructor=prompt('Enter the name of the instructor from Flight Safety or similar:');
+      }
     }
     else {
       if (record.checkAirman==='none') record.checkAirman=null;
+      if (record.checkAirman==='not listed') {
+        record.checkAirman=prompt('Enter the name of the check airman from Flight Safety or similar:');
+      }
     }
   }
   
