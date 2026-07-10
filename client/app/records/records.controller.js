@@ -312,9 +312,16 @@ class RecordsComponent {
     return this.subtabs;
   }
   
+  selectTR(){
+    if (this.associated&&this.associated.index<0){
+      this.tab='CERT';
+      this.subtab=undefined;
+    }
+  }
+  
   add(approval){
-    if (this.associated&&!this.associated._id) this.associated=undefined;
-    if ((!this.tab||!this.subtab)&&!this.associated) return this.toaster.error('Error','Need to select a tab before uploading');
+    if (this.associated&&this.associated._id===undefined) this.associated=undefined;
+    if ((!this.tab||!this.subtab)&&(!this.associated||this.associated.index<0)) return this.toaster.error('Error','Need to select a tab before uploading');
     if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
       if (!this.seat) return this.toaster.error('Error','Need to select PIC or SIC for this aircraft');
     }
@@ -327,19 +334,20 @@ class RecordsComponent {
       let f=files[0];
       //for of loop if multiple uploads of this file
       let tabArray=[];
-      if (this.associated) {
-        if (!Array.isArray(this.associated.trainingTypeArray)||this.associated.trainingTypeArray.length===0) {
+      if (this.associated&&this.associated.index>-1) {
+        let localAssociated=this.records[this.associated.index];
+        if (!Array.isArray(localAssociated.trainingTypeArray)|localAssociated.trainingTypeArray.length===0) {
           return this.toaster.error('Error','Need to select some training types within the associated record before uploading');
         }
-        this.associated.trainingTypeArray.forEach(type=>{
-          const sub=this.associated.trainingType.charAt(0).toUpperCase() + this.associated.trainingType.slice(1).toLowerCase();
+        localAssociated.trainingTypeArray.forEach(type=>{
+          const sub=localAssociated.trainingType.charAt(0).toUpperCase() + localAssociated.trainingType.slice(1).toLowerCase();
           const {tab,seat}=this.typeToTab(type);
           tabArray.push({tab:tab,sub:sub,seat:seat});
         });
       }
       else tabArray=[{tab:this.tab,sub:this.subtab,seat:this.seat}];
       //begin approval if its an approval
-      if (approval&&this.associated) {
+      if (approval&&this.associated&&this.associated.index>-1) {
         this.approve();
       }
       for (const [index,obj] of tabArray.entries()) {
@@ -413,7 +421,7 @@ class RecordsComponent {
         else {
           //not in base month for the event
           if ((!record.newBaseMonth||record.newBaseMonth==='false')&&dateexists) {
-            if (confirm('You had previously selected to not create a new base month,  Do you want to set a new base month for ' + expKey + '? Currently, it is ' + new Date(existingDate).toLocaleDateString() )){
+            if (confirm('Do you want to set a new base month for ' + expKey + '? Currently, it is ' + new Date(existingDate).toLocaleDateString() )){
               //new base month will apply
             }
             else {
@@ -550,11 +558,11 @@ class RecordsComponent {
   setFilename(filename,obj){
     let fn='';
     let date=this.dateString;
-    if (this.associated) date=this.associated.date;
+    if (this.associated&&this.associated.index>-1) date=this.associated.date;
     fn=this.pilot._id+'_'+this.formatDate(date)+'_'+obj.tab+'_';
     if (obj.sub) fn+=obj.sub+'_';
     if (obj.seat) fn+=obj.seat+'_';
-    if (this.associated) fn+='associated_'+this.associated._id+'_';
+    if (this.associated&&this.associated.index>-1) fn+='associated_'+this.associated._id+'_';
     fn+=filename;
     return fn;
   }
@@ -778,9 +786,11 @@ class RecordsComponent {
   }
   
   //Upload PDF File and approve the record selected as this.associated
-  approve(){
-    let record=this.associated;
-    const index=this.records.map(e=>e._id).indexOf(record._id);
+  approve(r,i){
+    const index=i||this.records.map(e=>e._id).indexOf(this.associated._id);
+    let record=r||this.associated;
+    if (index>-1) record=this.records[index];
+    else return this.toaster.error('Error','Cannot save htis approval for this record, not finding it in my list of records!');
     //if (!record._id) return alert('You Need to Save it Before Approving it');
     //update in firebase and update relevant exp date
     record.approved=true;
@@ -994,6 +1004,16 @@ class RecordsComponent {
       return new Date(b.date) - new Date(a.date);
     });
     this.records.unshift(this.createNewRecord());
+    this.recordsChoice=this.records.map((record,index)=>{
+      const display=this.displayArray(record);
+      return {
+        _id:record._id,
+        display:display,
+        date:record.date,
+        index:index
+      };
+    });
+    this.recordsChoice[0]={_id:-1,display:"UPLOAD A CERT",date:'',index:-1};
   }
   
   tweakDate(date) {
