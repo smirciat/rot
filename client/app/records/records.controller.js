@@ -101,6 +101,7 @@ class RecordsComponent {
   
   $onInit(){
     if (!window.user) return this.state.go('main');
+    this.user=window.user;
     this.showTable=true;
     this.showSLEArray=[];
     this.date=new Date();
@@ -234,6 +235,12 @@ class RecordsComponent {
     if (index===3) return 'event-green';
   }
   
+  getExpDate(key){
+    if (!this.fullPilot) return;
+    if (key==='far293a') return this.fullPilot[key+'148'];
+    return this.fullPilot[key+'Exp'];
+  }
+  
   isUserUploader(){
     if (window.user&&this.uploaderEmails.indexOf(window.user.email)>-1) return true;
     return false;
@@ -247,7 +254,7 @@ class RecordsComponent {
     if (!p) return {};
     return {
       _id:p._id,name:p.name,quals:p.quals,removals:p.removals,ratings:p.ratings,other:p.other,otherDescription:p.otherDescription,
-      cfi:p.cfi,commercial:p.commercial,atp:p.atp,cert:p.cert,medicalClass:p.medicalClass,medicalDate:p.medicalDate,
+      cfi:p.cfi,commercial:p.commercial,atp:p.atp,cert:p.cert,medicalClass:p.medicalClass,medicalDate:p.medicalDate,medicalInterval:p.medicalInterval,
       highMinimumsC208:p.highMinimumsC208,highMinimumsC408:p.highMinimumsC408,highMinimumsC212:p.highMinimumsC212,highMinimumsB190:p.highMinimumsB190,highMinimumsBE20:p.highMinimumsBE20
     };
   }
@@ -305,7 +312,7 @@ class RecordsComponent {
     return this.subtabs;
   }
   
-  add(){
+  add(approval){
     if (this.associated&&!this.associated._id) this.associated=undefined;
     if ((!this.tab||!this.subtab)&&!this.associated) return this.toaster.error('Error','Need to select a tab before uploading');
     if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
@@ -313,7 +320,9 @@ class RecordsComponent {
     }
     else this.seat=undefined;
     if (!this.pilot||!this.pilot._id) return this.toaster.error('Error','Need to select a pilot in the navbar before uploading');
-    let files=Array.from(document.getElementById('file').files);
+    let files;
+    if (approval) files=Array.from(document.getElementById('fileApproval').files);
+    else files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
       let f=files[0];
       //for of loop if multiple uploads of this file
@@ -329,6 +338,10 @@ class RecordsComponent {
         });
       }
       else tabArray=[{tab:this.tab,sub:this.subtab,seat:this.seat}];
+      //begin approval if its an approval
+      if (approval&&this.associated) {
+        this.approve();
+      }
       for (const [index,obj] of tabArray.entries()) {
         let x=0;
         let filename=this.setFilename(f.name,obj);
@@ -764,12 +777,15 @@ class RecordsComponent {
     return nr;
   }
   
-  approve(record,index){
-    if (!record._id) return alert('You Need to Save it Before Approving it');
+  //Upload PDF File and approve the record selected as this.associated
+  approve(){
+    let record=this.associated;
+    const index=this.records.map(e=>e._id).indexOf(record._id);
+    //if (!record._id) return alert('You Need to Save it Before Approving it');
     //update in firebase and update relevant exp date
     record.approved=true;
     this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
-      this.records[index]=res.data;
+      if (index>-1) this.records[index]=res.data;
       this.updateExp(record);
     });
   }
@@ -960,6 +976,7 @@ class RecordsComponent {
         if (!record.dateOfBirth) record.dateOfBirth=this.fullPilot.dateOfBirth;
         if (!record.medicalDate) record.medicalDate=this.fullPilot.medicalDate;
         if (!record.medicalClass) record.medicalClass=this.fullPilot.medicalClass;
+        if (!record.medicalInterval) record.medicalInterval=this.fullPilot.medicalInterval;
         if (!record.cert) record.cert=this.fullPilot.cert;
         if (!record.certType) record.certType=this.fullPilot.certType;
         if (!record.name) record.name=this.fullPilot.name;

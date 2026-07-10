@@ -64,12 +64,30 @@
       </div>
     </div>
     <hr>
-    <h3>Select One or More Files to Upload</h3>
-    <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
-    <!--<input class="form-control" style="width:800px;" type="file" multiple id="file" name="file" />-->
-    <input class="form-control" style="width:800px;" type="file" id="file" name="file" />
-    <br>
-    <div class="points-row">
+    <!--Nate's Section-->
+    <div ng-if="records.approvalEmails.indexOf(records.user.email)>-1">
+      <h3>Select A File to Upload</h3>
+      <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
+      <input class="form-control" style="width:800px;" type="file" id="fileApproval" name="file" />
+      <br>
+      <div class="points-row">
+        <h5>Select Training Record Associated with this Upload</h5>
+        <ui-select ng-model="records.associated" theme="bootstrap" dropdown-position="down" style="width: 30em !important;">
+          <ui-select-match placeholder="Choose Tab">{{$select.selected.date + ' - ' + records.displayArray($select.selected) }}</ui-select-match>
+          <ui-select-choices repeat="item in records.records" >
+            <div ng-bind-html="item.date + ' - ' + records.displayArray(item) | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+        <button class="btn btn-warning" ng-disabled="records.isItDisabled('approve')" ng-click="records.add(true)">Upload and Approve</button>
+      </div>
+    </div>
+    <!--Kaleb's Section-->
+    <div ng-if="records.user.email==='smirciat@gmail.com'||records.user.email==='kalebjanke@gmail.com'">
+      <h3>Select A File to Upload</h3>
+      <h5>Drag and Drop to here, or click 'Choose File' to select from a list</h5>
+      <input class="form-control" style="width:800px;" type="file" id="file" name="file" />
+      <br>
+      <div class="points-row">
         <h5>Select Training Record Associated with this Upload</h5>
         <ui-select ng-model="records.associated" theme="bootstrap" dropdown-position="down" style="width: 30em !important;">
           <ui-select-match placeholder="Choose Tab">{{$select.selected.date + ' - ' + records.displayArray($select.selected) }}</ui-select-match>
@@ -78,8 +96,8 @@
           </ui-select-choices>
         </ui-select>
         <h5>OR:</h5>
-    </div>
-    <div class="points-row" ng-if="!records.associated||!records.associated._id">
+      </div>
+      <div class="points-row" ng-if="!records.associated||!records.associated._id">
         <h5>Select Tab of File From List</h5>
         <ui-select ng-model="records.tab" theme="bootstrap" dropdown-position="down">
           <ui-select-match placeholder="Choose Tab">{{$select.selected}}</ui-select-match>
@@ -101,7 +119,6 @@
           </ui-select-choices>
         </ui-select>
         <h5>Document Date</h5>
-        <!--<textarea rows="1" ng-model="records.dateString"></textarea>-->
         <div style="padding-left:0px;padding-top:0px" class="input-group">
           <input style="height:35px;width:150px;" type="text" ng-model="records.dateStringFormatted" 
               ng-blur="records.upDate('string')" ng-keydown="records.handle($event)">
@@ -117,10 +134,11 @@
       </div>
       <div class="points-row">
         
-        <!--<h5>New Base Month?</h5>
-        <input type="checkbox" ng-model="records.rebase" class="f6Input">-->
         <button class="btn btn-success" ng-click="records.add()">Upload File</button>
+      </div>
     </div>
+      
+      
   </div>
   <hr>
   
@@ -138,6 +156,26 @@
       <span ng-if="records.showApproved">Hide Previously Approved <i class="fa-solid fa-minus"></i></span>
     </h2>
   </div>
+  <div class="table-responsive" style="overflow-x: auto;" ng-if="records.showTable">
+    <h3>All Expirations for Selected Pilot {{records.pilot.displayName}}</h3>
+    <table class="table table-condensed table-bordered" style="min-width: 1200px;">
+      <thead>
+        <tr>
+          <th ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.getExpDate(key)">
+            {{key}}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.getExpDate(key)">
+            {{records.getExpDate(key)}}
+          </th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <hr ng-if="records.showTable">
   <div flex layout="row" id="content" ng-if="records.showTable">
     <div flex layout="column">
      <md-content flex class="space">
@@ -160,7 +198,6 @@
                 <th>Result</th>
                 <th>Additional Instruction</th>
                 <th>Outcome</th>
-                <th></th>
                 <th></th>
                 <th></th>
             </tr>
@@ -190,8 +227,10 @@
                 <td style="padding-top:15px;">{{record.name}}</td>
                 <!--<td><input class="form-control" ng-model="record.pilotNumber" type="text" ng-blur="records.fillPilotData(record,recordIndex)"><!-- style="width:70px;"></td>-->
                 <td style="padding-top:15px;">{{record.pilotNumber}}</td>
-                <td><input class="form-control" ng-model="record.date" type="text" ng-blur="records.checkDate(record)"></td>
-                
+                <td>
+                  <input class="form-control" ng-model="record.date" type="text" ng-blur="records.checkDate(record)"
+                      style="min-width:7em">
+                </td>
                 <td><ui-select ng-model="record.trainingType" theme="bootstrap" ng-disabled="disabled"><!--ng-change="records.trainingType(record)">-->
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="combo in records.trainingTypes" >
@@ -241,7 +280,6 @@
                 <td><textarea rows="1" style="width:10em;" ng-model="record.additionalInstruction"></textarea></td>
                 <td><textarea rows="1" style="width:4em;" ng-model="record.outcome"></textarea></td>
                 <td><button class="btn btn-success" ng-disabled="records.isItDisabled()" ng-click="records.update(record,$index)">Save</button></td>
-                <td><button class="btn btn-warning" ng-disabled="records.isItDisabled('approve')" ng-click="records.approve(record,$index)">Approve</button></td>
                 <td><button class="btn btn-danger" ng-disabled="records.isItDisabled()" ng-click="records.delete(record,$index)">Delete</button></td>
             </tr>
           </tbody>
@@ -388,7 +426,9 @@
               <ui-select-choices repeat="item in ['FIRST','SECOND']" >
                 <div ng-bind-html="item | highlight: $select.search"></div>
               </ui-select-choices>
-            </ui-select>
+            </ui-select>&nbsp
+            <span style="margin-top:5px;">Custom Medical Interval (In Months):</span>&nbsp
+            <input type="text" ng-model="records.pilot.medicalInterval">
           </div>
           <button class="btn btn-success" ng-click="records.savePilotAssignment()">Save Pilot Assignment/Removal Data</button>
       </div>

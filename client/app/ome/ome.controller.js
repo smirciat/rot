@@ -412,6 +412,7 @@ class OmeComponent {
           duration=12;
           if (medClass==="SECOND") duration=12;
         }
+        if (row.medicalInterval&&Number.isInteger(row.medicalInterval*1)) duration=row.medicalInterval;
         let expDate=this.moment(new Date(dateString)).add(duration,'M').format('MM/DD/YYYY');
         if (expDate){
           let arr=expDate.split('/');
