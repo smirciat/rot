@@ -1,0 +1,40 @@
+---
+description: AngularJS client conventions for ROT
+globs: client/**/*.{js,html,css}
+alwaysApply: false
+---
+
+# AngularJS Client
+
+## Module and routing
+
+- Root module: `rotApp`. Feature modules extend it (e.g. `rotApp.auth`, `rotApp.admin`).
+- Routes via ui-router `$stateProvider` in feature `*.js` files.
+- HTML5 mode enabled — use ui-sref, not hash URLs.
+
+## Component pattern
+
+Newer features use ES6 classes registered as components:
+
+```javascript
+class MyComponent {
+  constructor($http) { this.http = $http; }
+  $onInit() { /* load data */ }
+}
+angular.module('rotApp').component('myComponent', {
+  templateUrl: 'app/myFeature/myFeature.html',
+  controller: MyComponent
+});
+```
+
+## Templates and data
+
+- Colocate `*.html`, `*.css`, `*.js` per feature under `client/app/<feature>/`.
+- `$http` calls hit `/api/*` or file routes (`/fileserver`, `/pdf`).
+- Auth check: `window.user && window.user.accessToken` (also Firebase login on main page).
+- Use ui-grid for tabular data; Bootstrap classes for layout.
+
+## Do not
+
+- Introduce React, Vue, or Angular 2+ patterns.
+- Add TypeScript or modern build tooling unless explicitly requested.
