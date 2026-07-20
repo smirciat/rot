@@ -163,7 +163,7 @@
     </h2>
   </div>
   <div class="table-responsive" style="overflow-x: auto;" ng-if="records.showTable">
-    <h3>All Expirations for Selected Pilot {{records.pilot.displayName}}</h3>
+    <h3>All Training Dates for Selected Pilot {{records.pilot.displayName}}</h3>
     <table class="table table-condensed table-bordered" style="min-width: 1200px;">
       <thead>
         <tr>
@@ -175,8 +175,8 @@
       <tbody>
         <tr>
           <td ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.getExpDate(key)">
-            {{records.getExpDate(key)}}
-          </th>
+            {{records.getExpDate(key) | monthYear}}
+          </td>
         </tr>
       </tbody>
     </table>

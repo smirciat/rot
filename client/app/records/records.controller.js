@@ -75,6 +75,8 @@ class RecordsComponent {
             this.records[recordIndex][key]="false";
           }
         }
+        this.enrichRecords();
+        this.buildRecordsChoice();
       });
       this.pilotModal = this.Modal.confirm.pilotData(formData =>{
         console.log(formData);
@@ -774,6 +776,8 @@ class RecordsComponent {
       const id=record._id;
       this.records[index]=res.data;
       if (!id) this.records.unshift(this.createNewRecord());
+      this.enrichRecords();
+      this.buildRecordsChoice();
     });
   }
   
@@ -806,6 +810,7 @@ class RecordsComponent {
     this.http.post('/api/things/deleteFirebase',{id:record._id}).then(res=>{
       this.toaster.warning('Warning','Record has been deleted');
       this.records.splice(index,1);
+      this.buildRecordsChoice();
     })
     .catch(err=>{console.log(err)});
   }
@@ -980,7 +985,7 @@ class RecordsComponent {
     return result;
   }
   
-  refreshRecords(){
+  enrichRecords(){
     this.records.forEach(record=>{
       if (this.fullPilot&&this.fullPilot._id){
         if (!record.dateOfBirth) record.dateOfBirth=this.fullPilot.dateOfBirth;
@@ -1000,10 +1005,9 @@ class RecordsComponent {
         });
       }
     });
-    this.records.sort((a,b)=>{
-      return new Date(b.date) - new Date(a.date);
-    });
-    this.records.unshift(this.createNewRecord());
+  }
+
+  buildRecordsChoice(){
     this.recordsChoice=this.records.map((record,index)=>{
       const display=this.displayArray(record);
       return {
@@ -1013,7 +1017,18 @@ class RecordsComponent {
         index:index
       };
     });
-    this.recordsChoice[0]={_id:-1,display:"UPLOAD A CERT",date:'',index:-1};
+    if (this.recordsChoice.length) {
+      this.recordsChoice[0]={_id:-1,display:"UPLOAD A CERT",date:'',index:-1};
+    }
+  }
+
+  refreshRecords(){
+    this.enrichRecords();
+    this.records.sort((a,b)=>{
+      return new Date(b.date) - new Date(a.date);
+    });
+    this.records.unshift(this.createNewRecord());
+    this.buildRecordsChoice();
   }
   
   tweakDate(date) {
@@ -1341,6 +1356,17 @@ class RecordsComponent {
 }
 
 angular.module('rotApp')
+  .filter('monthYear', () => {
+    return function(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return dateStr;
+      const date = new Date(parseInt(parts[2], 10), parseInt(parts[0], 10) - 1, parseInt(parts[1], 10));
+      if (isNaN(date.getTime())) return dateStr;
+      const month = date.toLocaleString('default', { month: 'short' });
+      return month + '-' + date.getFullYear();
+    };
+  })
   .filter('recordFilter',()=>{
     return function(input, showApproved) {
       if (!input||!Array.isArray(input)) return [];
