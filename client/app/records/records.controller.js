@@ -315,15 +315,32 @@ class RecordsComponent {
   }
   
   selectTR(){
-    if (this.associated&&this.associated.index<0){
+    if (this.associated&&(this.associated._id===-1||(typeof this.associated.index==='number'&&this.associated.index<0))){
       this.tab='CERT';
       this.subtab=undefined;
     }
   }
+
+  getAssociatedRecord(){
+    if (!this.associated||this.associated._id===-1) return null;
+    if (typeof this.associated.index==='number'&&this.associated.index>-1) {
+      return this.records[this.associated.index]||null;
+    }
+    if (this.associated._id) {
+      const match=this.records.find(r=>r._id===this.associated._id);
+      return match||this.associated;
+    }
+    return null;
+  }
+
+  hasAssociatedRecord(){
+    const record=this.getAssociatedRecord();
+    return !!(record&&record._id);
+  }
   
   add(approval){
     if (this.associated&&this.associated._id===undefined) this.associated=undefined;
-    if ((!this.tab||!this.subtab)&&(!this.associated||this.associated.index<0)) return this.toaster.error('Error','Need to select a tab before uploading');
+    if ((!this.tab||!this.subtab)&&!this.hasAssociatedRecord()) return this.toaster.error('Error','Need to select a tab before uploading');
     if (this.tab==='C212'||this.tab==='B190'||this.tab==='C408') {
       if (!this.seat) return this.toaster.error('Error','Need to select PIC or SIC for this aircraft');
     }
@@ -334,11 +351,10 @@ class RecordsComponent {
     else files=Array.from(document.getElementById('file').files);
     if (files&&files.length>0) {
       let f=files[0];
-      //for of loop if multiple uploads of this file
       let tabArray=[];
-      if (this.associated&&this.associated.index>-1) {
-        let localAssociated=this.records[this.associated.index];
-        if (!Array.isArray(localAssociated.trainingTypeArray)|localAssociated.trainingTypeArray.length===0) {
+      const localAssociated=this.getAssociatedRecord();
+      if (localAssociated) {
+        if (!Array.isArray(localAssociated.trainingTypeArray)||localAssociated.trainingTypeArray.length===0) {
           return this.toaster.error('Error','Need to select some training types within the associated record before uploading');
         }
         localAssociated.trainingTypeArray.forEach(type=>{
@@ -348,44 +364,62 @@ class RecordsComponent {
         });
       }
       else tabArray=[{tab:this.tab,sub:this.subtab,seat:this.seat}];
-      //begin approval if its an approval
-      if (approval&&this.associated&&this.associated.index>-1) {
+      if (approval&&localAssociated) {
         this.approve();
       }
-      for (const [index,obj] of tabArray.entries()) {
-        let x=0;
+      let uploadsPending=tabArray.length;
+      const onUploadFinished=()=>{
+        uploadsPending--;
+        if (uploadsPending<=0) this.timeout(()=>{this.init();},1000);
+      };
+      for (const obj of tabArray) {
         let filename=this.setFilename(f.name,obj);
-        let r = new FileReader();
-        r.onloadend = e=>{
-          this.http.post('/api/raws/uploadRecord',{data:btoa(e.target.result),filename:filename}).then(res=>{
-            //update training exp date in accordance with new upload, checking for errors and alerting of the changes
-            this.toaster.success('Success','File Uploaded Successfully');
+        let r=new FileReader();
+        r.onerror=()=>{
+          console.log('FileReader error for', filename);
+          this.toaster.error('Error',filename+' could not be read');
+          onUploadFinished();
+        };
+        r.onloadend=e=>{
+          if (!e.target||e.target.result===null||e.target.result===undefined) {
+            this.toaster.error('Error',filename+' could not be read');
+            onUploadFinished();
+            return;
+          }
+          let encoded;
+          try {
+            encoded=btoa(e.target.result);
+          } catch (err) {
+            console.log(err);
+            this.toaster.error('Error',filename+' could not be encoded');
+            onUploadFinished();
+            return;
+          }
+          this.http.post('/api/raws/uploadRecord',{data:encoded,filename:filename}).then(res=>{
+            this.toaster.success('Success',filename+' uploaded successfully');
             if (this.subtab==='Medical') {
               let doc={_id:this.pilot._id};
-              doc.medicalDate = this.dateString;
+              doc.medicalDate=this.dateString;
               this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
-                this.fullPilot.medicalDate = this.dateString;
-                let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
-                if (index>-1) Object.assign(this.pilots[index], doc );
-                this.toaster.success('Success','medical updated to ' + this.dateString);
+                this.fullPilot.medicalDate=this.dateString;
+                let pilotIndex=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
+                if (pilotIndex>-1) Object.assign(this.pilots[pilotIndex],doc);
+                this.toaster.success('Success','medical updated to '+this.dateString);
                 this.init();
-              }).catch(err=>{console.log(err)});
+              }).catch(err=>{
+                console.log(err);
+                this.toaster.error('Error','Failed to update medical date');
+                onUploadFinished();
+              });
             }
-            else {
-              this.timeout(()=>{
-                if (index>=tabArray.length-1) this.init();
-              },1000);
-            }
-            let d=document.getElementById('file');
-            //if this fires, it will clear the selected file to prevent repeated uploads, disabled for now
-            //if (d) d.value='';
+            else onUploadFinished();
           }).catch(err=>{
             console.log(err);
-            this.toaster.error('Error','File upload failed');
+            this.toaster.error('Error',filename+' upload failed');
+            onUploadFinished();
           });
         };
         r.readAsBinaryString(f);
-        x++;
       }
     }
     else this.toaster.error('Error','Need to finish adding the file first');
@@ -560,11 +594,12 @@ class RecordsComponent {
   setFilename(filename,obj){
     let fn='';
     let date=this.dateString;
-    if (this.associated&&this.associated.index>-1) date=this.associated.date;
+    const associated=this.getAssociatedRecord();
+    if (associated) date=associated.date;
     fn=this.pilot._id+'_'+this.formatDate(date)+'_'+obj.tab+'_';
     if (obj.sub) fn+=obj.sub+'_';
     if (obj.seat) fn+=obj.seat+'_';
-    if (this.associated&&this.associated.index>-1) fn+='associated_'+this.associated._id+'_';
+    if (associated) fn+='associated_'+associated._id+'_';
     fn+=filename;
     return fn;
   }
@@ -791,16 +826,16 @@ class RecordsComponent {
   
   //Upload PDF File and approve the record selected as this.associated
   approve(r,i){
-    const index=i||this.records.map(e=>e._id).indexOf(this.associated._id);
-    let record=r||this.associated;
-    if (index>-1) record=this.records[index];
-    else return this.toaster.error('Error','Cannot save htis approval for this record, not finding it in my list of records!');
+    const record=r||this.getAssociatedRecord();
+    if (!record||!record._id) return this.toaster.error('Error','Cannot save this approval for this record, not finding it in my list of records!');
+    const index=typeof i==='number'?i:this.records.findIndex(e=>e._id===record._id);
+    const localRecord=index>-1?this.records[index]:record;
     //if (!record._id) return alert('You Need to Save it Before Approving it');
     //update in firebase and update relevant exp date
-    record.approved=true;
-    this.http.post('/api/things/updateFirebase',{collection:'records',doc:record}).then(res=>{
+    localRecord.approved=true;
+    this.http.post('/api/things/updateFirebase',{collection:'records',doc:localRecord}).then(res=>{
       if (index>-1) this.records[index]=res.data;
-      this.updateExp(record);
+      this.updateExp(localRecord);
     });
   }
   
@@ -1019,6 +1054,10 @@ class RecordsComponent {
     });
     if (this.recordsChoice.length) {
       this.recordsChoice[0]={_id:-1,display:"UPLOAD A CERT",date:'',index:-1};
+    }
+    if (this.associated&&this.associated._id&&this.associated._id!==-1) {
+      const choice=this.recordsChoice.find(c=>c._id===this.associated._id);
+      if (choice) this.associated=choice;
     }
   }
 
