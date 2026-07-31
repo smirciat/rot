@@ -74,6 +74,8 @@
       <label>{{event.label+' Base Month (MM/DD/YYYY)'}}</label>
       <input class="form-control" type="text" ng-model="modal.formData[event.name+'Exp']" ng-blur="modal.fixDate(event.name+'Exp')">
     </div>
+    <label>293(a) 1,4-8 Expiration (MM/DD/YYYY)</label>
+    <input class="form-control" type="text" ng-model="modal.formData.far293a148" ng-blur="modal.fixDate('far293a148')">
     <div ng-repeat="t in modal.aircraftTypes">
       <label>High Minumums Captain for {{t}}</label>
       <input class="form-control" type="checkbox" ng-model="modal.formData['highMinimums'+t]">

@@ -54,14 +54,20 @@ class RecordsComponent {
         //select training types
         let recordIndex = 0;
         if (formData._id) recordIndex= this.records.map(e => e._id).indexOf(formData._id);
+        const baseMonthManual=this.records[recordIndex].baseMonthManual;
+        const savedBaseMonth=this.records[recordIndex].baseMonth;
         Object.assign(this.records[recordIndex],formData);
+        if (baseMonthManual) {
+          this.records[recordIndex].baseMonthManual=true;
+          this.records[recordIndex].baseMonth=savedBaseMonth;
+        }
         this.records[recordIndex].trainingTypeArray=[];
         for (let key in this.records[recordIndex]) {
           if (this.appConfig.trainingEventKeys.indexOf(key)<0) continue;
           if (this.records[recordIndex][key]&&typeof this.records[recordIndex][key]=="boolean") {
             this.records[recordIndex][key]="true";
             this.records[recordIndex].trainingTypeArray.push(key);
-            if (key!=='far297'){
+            if (key!=='far297'&&!this.records[recordIndex].baseMonthManual){
               let expKey=key+'Exp';
               //find pilot record
               let pilotIndex = this.pilots.map(e => e.name).indexOf(this.records[recordIndex].name);
@@ -79,25 +85,26 @@ class RecordsComponent {
         this.buildRecordsChoice();
       });
       this.pilotModal = this.Modal.confirm.pilotData(formData =>{
-        console.log(formData);
         if (!formData||!formData.name) {
-          console.log('got this far');
-          this.quickModal("Try again to enter the pilot data");
+          this.quickModal('Try again to enter the pilot data');
           return;
         }
-        //formData is this pilot data
         if (formData._id) {
-          this.loading=false;
-          //this.updateRecord('pilots',formData).then(res=>{
-            //this.loading=false;
-          //});
-          //let pilotIndex = this.pilots.map(e => e._id).indexOf(formData._id);
-          //this.pilots[pilotIndex]=JSON.parse(JSON.stringify(formData));
+          this.logManualExpHistoryChanges(formData);
+          formData.trainingExpHistory=this.fullPilot.trainingExpHistory;
+          this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:formData}).then(()=>{
+            this.toaster.success('Success','Pilot training dates updated');
+            let pilotIndex = this.pilots.map(e => e._id).indexOf(formData._id);
+            if (pilotIndex>-1) this.pilots[pilotIndex]=JSON.parse(JSON.stringify(formData));
+            if (this.fullPilot&&this.fullPilot._id===formData._id) {
+              Object.assign(this.fullPilot, formData);
+              this.pilot=this.cleanObject(formData);
+            }
+          }).catch(err=>{
+            console.log(err);
+            this.toaster.error('Error','Failed to update pilot training dates');
+          });
         }
-        let recordIndex = this.records.map(e => e._id).indexOf(this.recordId);
-        this.records[recordIndex].pilotNumber=formData._id.toString();
-        //formData._id=this.recordId;
-        //Object.assign(this.records[recordIndex],...formData);
       });
   }
   
@@ -180,6 +187,8 @@ class RecordsComponent {
     this.pilot=this.cleanObject(p);
     if (!this.pilot.quals||this.pilot.quals.length===0) this.pilot.quals=[{}];
     if (!this.pilot.removals||this.pilot.removals.length===0) this.pilot.removals=[];
+    if (!this.fullPilot.trainingExpHistory) this.fullPilot.trainingExpHistory={};
+    this.installExpHistoryDebug();
     this.fullFiles.forEach(file=>{
       if (file.urlMain) URL.revokeObjectURL(file.urlMain);
     });
@@ -242,10 +251,221 @@ class RecordsComponent {
     if (key==='far293a') return this.fullPilot[key+'148'];
     return this.fullPilot[key+'Exp'];
   }
+
+  getPilotExpFieldKey(trainingEventKey){
+    if (trainingEventKey==='far293a') return 'far293a148';
+    return trainingEventKey+'Exp';
+  }
+
+  buildExpHistoryEntry(exp,context){
+    return {
+      exp: exp,
+      baseMonth: context.baseMonth||null,
+      checkDate: context.checkDate||null,
+      recordId: context.recordId||null,
+      approvedAt: new Date().toISOString(),
+      approvedBy: (window.user&&window.user.email)||null,
+      newBaseMonth: context.newBaseMonth==='true'||context.newBaseMonth===true,
+      source: context.source||'approval',
+    };
+  }
+
+  prependExpHistory(expKey,entry){
+    if (!expKey||!entry||!entry.exp) return false;
+    if (!this.fullPilot) return false;
+    if (!this.fullPilot.trainingExpHistory) this.fullPilot.trainingExpHistory={};
+    let history=this.fullPilot.trainingExpHistory[expKey]||[];
+    if (history.length>0&&history[0].exp===entry.exp) return false;
+    history.unshift(entry);
+    this.fullPilot.trainingExpHistory[expKey]=history.slice(0,3);
+    return true;
+  }
+
+  logApprovalExpHistory(record,expKey,expValue,expKeyAlt){
+    const context={
+      baseMonth: record.baseMonth,
+      checkDate: record.date,
+      recordId: record._id,
+      newBaseMonth: record.newBaseMonth,
+      source: 'approval',
+    };
+    const entry=this.buildExpHistoryEntry(expValue,context);
+    this.prependExpHistory(expKey,entry);
+    if (expKeyAlt) this.prependExpHistory(expKeyAlt,entry);
+  }
+
+  logManualExpHistoryChanges(updatedPilot){
+    if (!this.fullPilot||!updatedPilot) return;
+    const context={source:'manual'};
+    const fields=this.getTrackedExpFields();
+    fields.forEach(field=>{
+      if (updatedPilot[field]&&updatedPilot[field]!==this.fullPilot[field]) {
+        this.prependExpHistory(field,this.buildExpHistoryEntry(updatedPilot[field],context));
+      }
+    });
+  }
+
+  logRevertExpHistory(priorExpDates){
+    if (!priorExpDates) return;
+    const context={source:'revert'};
+    Object.keys(priorExpDates).forEach(expKey=>{
+      this.prependExpHistory(expKey,this.buildExpHistoryEntry(priorExpDates[expKey],context));
+    });
+  }
+
+  getTrackedExpFields(){
+    const fields=this.appConfig.trainingEvents.map(event=>event.name+'Exp');
+    fields.push('far293a148');
+    return fields;
+  }
+
+  hasExpColumn(key){
+    if (this.getExpDate(key)) return true;
+    if (!this.fullPilot||!this.fullPilot.trainingExpHistory) return false;
+    const fieldKey=this.getPilotExpFieldKey(key);
+    const history=this.fullPilot.trainingExpHistory[fieldKey];
+    return !!(history&&history.length);
+  }
+
+  expHistoryRowIndexes(){
+    return [0,1,2];
+  }
+
+  expHistoryRowLabel(rowIndex){
+    if (rowIndex===0) return 'Current';
+    return 'Previous';
+  }
+
+  expHistoryRowClass(rowIndex){
+    if (rowIndex===0) return 'exp-history-current';
+    if (rowIndex===1) return 'exp-history-prev1';
+    return 'exp-history-prev2';
+  }
+
+  getExpHistoryHistoryIndex(trainingEventKey,rowIndex){
+    const fieldKey=this.getPilotExpFieldKey(trainingEventKey);
+    const history=(this.fullPilot&&this.fullPilot.trainingExpHistory&&this.fullPilot.trainingExpHistory[fieldKey])||[];
+    const live=this.getExpDate(trainingEventKey);
+    const loggedCurrentMatchesLive=history.length>0&&history[0].exp===live;
+    if (rowIndex===1) return loggedCurrentMatchesLive?1:0;
+    if (rowIndex===2) return loggedCurrentMatchesLive?2:1;
+    return -1;
+  }
+
+  getExpHistoryCell(trainingEventKey,rowIndex){
+    if (rowIndex===0) return this.getExpDate(trainingEventKey);
+    const fieldKey=this.getPilotExpFieldKey(trainingEventKey);
+    const history=(this.fullPilot&&this.fullPilot.trainingExpHistory&&this.fullPilot.trainingExpHistory[fieldKey])||[];
+    const historyIndex=this.getExpHistoryHistoryIndex(trainingEventKey,rowIndex);
+    if (historyIndex<0||!history[historyIndex]) return null;
+    return history[historyIndex].exp;
+  }
+
+  getExpHistoryTooltip(trainingEventKey,rowIndex){
+    if (rowIndex===0) return 'Current value on pilot profile';
+    const fieldKey=this.getPilotExpFieldKey(trainingEventKey);
+    const history=(this.fullPilot&&this.fullPilot.trainingExpHistory&&this.fullPilot.trainingExpHistory[fieldKey])||[];
+    const historyIndex=this.getExpHistoryHistoryIndex(trainingEventKey,rowIndex);
+    const entry=historyIndex>=0?history[historyIndex]:null;
+    if (!entry) return '';
+    const parts=['Logged '+entry.source];
+    if (entry.checkDate) parts.push('check '+entry.checkDate);
+    if (entry.baseMonth) parts.push('base '+entry.baseMonth);
+    if (entry.approvedBy) parts.push('by '+entry.approvedBy);
+    if (entry.approvedAt) parts.push('at '+new Date(entry.approvedAt).toLocaleString());
+    return parts.join(' · ');
+  }
+
+  dumpExpHistory(trainingEventKey){
+    const key=trainingEventKey||'C208PIC';
+    const fieldKey=this.getPilotExpFieldKey(key);
+    return {
+      trainingEventKey: key,
+      fieldKey: fieldKey,
+      live: this.getExpDate(key),
+      history: (this.fullPilot&&this.fullPilot.trainingExpHistory&&this.fullPilot.trainingExpHistory[fieldKey])||[],
+      rows: this.expHistoryRowIndexes().map(rowIndex=>({
+        label: this.expHistoryRowLabel(rowIndex),
+        value: this.getExpHistoryCell(key,rowIndex),
+        tooltip: this.getExpHistoryTooltip(key,rowIndex),
+      })),
+    };
+  }
+
+  dumpAllExpHistory(){
+    if (!this.appConfig||!this.appConfig.trainingEventKeys) return [];
+    return this.appConfig.trainingEventKeys
+      .filter(key=>this.hasExpColumn(key))
+      .map(key=>this.dumpExpHistory(key));
+  }
+
+  installExpHistoryDebug(){
+    if (!this.isApprover()) return;
+    window.recordsExpHistoryDebug={
+      dump: (key)=>this.dumpExpHistory(key),
+      dumpAll: ()=>this.dumpAllExpHistory(),
+      pilot: ()=>this.fullPilot&&this.fullPilot.name,
+    };
+  }
   
   isUserUploader(){
     if (window.user&&this.uploaderEmails.indexOf(window.user.email)>-1) return true;
     return false;
+  }
+
+  isApprover(){
+    return !!(window.user&&this.approvalEmails.indexOf(window.user.email)>-1);
+  }
+
+  onBaseMonthChange(record){
+    if (record) record.baseMonthManual=true;
+  }
+
+  showPilotTrainingDates(){
+    if (!this.fullPilot||!this.fullPilot._id) return this.toaster.error('Error','Select a pilot first');
+    if (!this.isApprover()) return this.toaster.error('Error','Only approvers can edit pilot training dates');
+    let pilotCopy=JSON.parse(JSON.stringify(this.fullPilot));
+    this.pilotModal(pilotCopy,this.pilots);
+  }
+
+  parseShortExpDate(expStr){
+    if (!expStr) return null;
+    let parts=expStr.split('/');
+    if (parts.length!==3) return null;
+    let year=parseInt(parts[2],10);
+    if (year<100) year+=2000;
+    return new Date(year,parseInt(parts[0],10)-1,parseInt(parts[1],10));
+  }
+
+  snapshotPriorExpDates(record){
+    if (!record.trainingTypeArray||record.trainingTypeArray.length===0) return {};
+    let priorExpDates={};
+    record.trainingTypeArray.forEach(type=>{
+      const {tab,seat}=this.typeToTab(type);
+      const {expKey,expKeyAlt,timeframe}=this.setExp(tab,seat);
+      if (timeframe&&expKey&&this.fullPilot[expKey]) {
+        priorExpDates[expKey]=this.fullPilot[expKey];
+        if (expKeyAlt&&this.fullPilot[expKeyAlt]) priorExpDates[expKeyAlt]=this.fullPilot[expKeyAlt];
+      }
+    });
+    return priorExpDates;
+  }
+
+  revertPriorExpDates(priorExpDates){
+    if (!priorExpDates||!Object.keys(priorExpDates).length) return;
+    this.logRevertExpHistory(priorExpDates);
+    let doc={_id:this.pilot._id};
+    Object.assign(doc,priorExpDates);
+    doc.trainingExpHistory=this.fullPilot.trainingExpHistory;
+    this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(()=>{
+      Object.assign(this.fullPilot, priorExpDates);
+      let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
+      if (index>-1) Object.assign(this.pilots[index], priorExpDates);
+      this.toaster.success('Success','Pilot expiration dates reverted');
+    }).catch(err=>{
+      console.log(err);
+      this.toaster.error('Error','Failed to revert pilot expiration dates');
+    });
   }
   
   loggedIn(){
@@ -468,18 +688,29 @@ class RecordsComponent {
         }
         
         let newDate = new Date(new Date(date).setMonth(date.getMonth() + timeframe));
-        if (newDate<existingDate) {
-          this.toaster.error('Error','New expiration date should not be earlier than the existing one! Expiration date not updated');
-          //this.init();
-          return;
+        if (record.newBaseMonth==='true'&&record.baseMonth) {
+          let expFromBase=this.getExp(record.baseMonth,record.date,String(timeframe),1);
+          let parsedBaseExp=this.parseShortExpDate(expFromBase);
+          if (parsedBaseExp) newDate=parsedBaseExp;
+        }
+        if (existingDate&&newDate<existingDate) {
+          let allowEarlier=record.newBaseMonth==='true'||this.isApprover();
+          if (!allowEarlier||!confirm('New expiration ('+newDate.toLocaleDateString()+') is earlier than the current one ('+existingDate.toLocaleDateString()+'). Proceed with this correction?')) {
+            this.toaster.error('Error','New expiration date should not be earlier than the existing one! Expiration date not updated');
+            return;
+          }
         }
         if (confirm('Are you sure you want to update '+this.pilot.name+'`s expiration for ' + expKey + ' to ' + newDate.toLocaleDateString() + '?')){
           let doc={_id:this.pilot._id};
-          doc[expKey] = newDate.toLocaleDateString();
-          if (expKeyAlt) doc[expKeyAlt] = newDate.toLocaleDateString();
+          const expValue=newDate.toLocaleDateString();
+          doc[expKey] = expValue;
+          if (expKeyAlt) doc[expKeyAlt] = expValue;
+          this.logApprovalExpHistory(record,expKey,expValue,expKeyAlt);
+          doc.trainingExpHistory=this.fullPilot.trainingExpHistory;
           this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(res=>{
             this.toaster.success('Success','Pilot Profile Updated');
-            this.fullPilot[expKey] = newDate.toLocaleDateString();
+            this.fullPilot[expKey] = expValue;
+            if (expKeyAlt) this.fullPilot[expKeyAlt] = expValue;
             let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
             if (index>-1) Object.assign(this.pilots[index], doc );
             //this.init();
@@ -818,7 +1049,7 @@ class RecordsComponent {
   
   createNewRecord(){
     let nr=JSON.parse(JSON.stringify(this.fullPilot));
-    let newObj={name:this.fullPilot.name,pilotNumber:this.fullPilot._id,dateObj:new Date(),date:new Date().toLocaleDateString(),newBaseMonth:'false',trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })};
+    let newObj={name:this.fullPilot.name,pilotNumber:this.fullPilot._id,dateObj:new Date(),date:new Date().toLocaleDateString(),newBaseMonth:'false',baseMonthManual:false,trainingType:'recurrent',baseMonth:new Date().toLocaleString('default', { month: 'long' })};
     Object.assign(nr, newObj );
     delete nr._id;
     return nr;
@@ -833,6 +1064,9 @@ class RecordsComponent {
     //if (!record._id) return alert('You Need to Save it Before Approving it');
     //update in firebase and update relevant exp date
     localRecord.approved=true;
+    if (!localRecord.priorExpDates||!Object.keys(localRecord.priorExpDates).length) {
+      localRecord.priorExpDates=this.snapshotPriorExpDates(localRecord);
+    }
     this.http.post('/api/things/updateFirebase',{collection:'records',doc:localRecord}).then(res=>{
       if (index>-1) this.records[index]=res.data;
       this.updateExp(localRecord);
@@ -841,11 +1075,17 @@ class RecordsComponent {
   
   delete(record,index){
     if (!record._id) return alert('No ID associated with this record, nothing to delete in Firestore');
+    let revertExp=false;
+    if (record.approved&&record.priorExpDates&&Object.keys(record.priorExpDates).length) {
+      revertExp=confirm('This record was approved and updated pilot expiration dates. Also revert those expiration dates to their values before this record was approved?');
+    }
+    const priorExpDates=revertExp?record.priorExpDates:null;
     //remove record from firebase and update local array
     this.http.post('/api/things/deleteFirebase',{id:record._id}).then(res=>{
       this.toaster.warning('Warning','Record has been deleted');
       this.records.splice(index,1);
       this.buildRecordsChoice();
+      if (priorExpDates) this.revertPriorExpDates(priorExpDates);
     })
     .catch(err=>{console.log(err)});
   }
@@ -993,12 +1233,9 @@ class RecordsComponent {
   }
   
   isItDisabled(button){
-    if (button&&button==='approve'){
-      if (window.user&&this.approvalEmails.indexOf(window.user.email)>-1) {
-        return false;
-      }
-      else return true;
-    }
+    if (this.loading) return true;
+    if (button&&button==='approve') return !this.isApprover();
+    return false;
   }
   
   newRecordClass(record){
@@ -1082,11 +1319,6 @@ class RecordsComponent {
   medBlur(id) {
     var index = this.pilotsOld.map(e => e._id).indexOf(id);
     this.pilotsOld[index].medicalDate=this.tweakDate(this.pilotsOld[index].medicalDate);
-  }
-  
-  isItDisabled(){
-    if (this.loading) return "disabled";
-    return;
   }
   
   isItLoading(){

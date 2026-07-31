@@ -163,19 +163,26 @@
     </h2>
   </div>
   <div class="table-responsive" style="overflow-x: auto;" ng-if="records.showTable">
-    <h3>All Training Dates for Selected Pilot {{records.pilot.displayName}}</h3>
-    <table class="table table-condensed table-bordered" style="min-width: 1200px;">
+    <div style="display:flex;align-items:center;gap:15px;margin-bottom:10px;">
+      <h3 style="margin:0;">All Training Dates for Selected Pilot {{records.pilot.displayName}}</h3>
+      <button ng-if="records.isApprover()" class="btn btn-info" ng-click="records.showPilotTrainingDates()">Edit Pilot Training Dates</button>
+    </div>
+    <table class="table table-condensed table-bordered exp-history-table" style="min-width: 1200px;">
       <thead>
         <tr>
-          <th ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.getExpDate(key)">
+          <th></th>
+          <th ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.hasExpColumn(key)">
             {{key}}
           </th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.getExpDate(key)">
-            {{records.getExpDate(key) | monthYear}}
+        <tr ng-repeat="rowIndex in records.expHistoryRowIndexes() track by rowIndex" ng-class="records.expHistoryRowClass(rowIndex)">
+          <th>{{records.expHistoryRowLabel(rowIndex)}}</th>
+          <td ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.hasExpColumn(key)">
+            <span uib-tooltip="{{records.getExpHistoryTooltip(key, rowIndex)}}" tooltip-enable="records.getExpHistoryCell(key, rowIndex)">
+              {{ (records.getExpHistoryCell(key, rowIndex) | monthYear) || '—' }}
+            </span>
           </td>
         </tr>
       </tbody>
@@ -198,7 +205,7 @@
                 <th>Aircraft</th>
                 <th>Type</th>
                 <th>Base Month</th>
-                <!--<th>New Base</th>-->
+                <th>New Base</th>
                 <th>Instructor</th>
                 <th>CheckAirman</th>
                 <th>Result</th>
@@ -212,19 +219,19 @@
             <tr ng-repeat="record in records.records | recordFilter:records.showApproved track by $index " ng-init="recordIndex=$index" ng-class="records.newRecordClass(record)">
                 
                 <td>
-                  <button class="btn btn-primary" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'ROT')">
+                  <button class="btn btn-primary" ng-class="{'disabled': records.isItLoading()}" ng-click="records.pdf(record,'ROT')">
                     <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
                     ROT
                   </button>
                 </td>
                 <td>
-                  <button class="btn btn-warning" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTest')">
+                  <button class="btn btn-warning" ng-class="{'disabled': records.isItLoading()}" ng-click="records.pdf(record,'FlightTest')">
                     <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
                     Flight Test
                   </button>
                 </td>
                 <td>
-                  <button class="btn btn-success" ng-class="records.isItDisabled()" ng-click="records.pdf(record,'FlightTestINDOC')">
+                  <button class="btn btn-success" ng-class="{'disabled': records.isItLoading()}" ng-click="records.pdf(record,'FlightTestINDOC')">
                     <span ng-if="records.isItLoading()" class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
                     INDOC
                   </button>
@@ -252,18 +259,18 @@
                 <td ng-click="records.radioModal(record)" style="padding-top:15px;">
                   <p tooltip-placement="auto" uib-tooltip="Click to Edit">{{records.displayArray(record)}}</p>
                 </td>
-                <td><ui-select ng-model="record.baseMonth" theme="bootstrap" ng-disabled="disabled">
+                <td><ui-select ng-model="record.baseMonth" theme="bootstrap" ng-disabled="disabled" on-select="records.onBaseMonthChange(record)">
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="month in records.months" >
                     <div ng-bind-html="month | highlight: $select.search"></div>
                   </ui-select-choices>
                 </ui-select></td>
-                <!--<td><ui-select ng-model="record.newBaseMonth" theme="bootstrap" ng-disabled="disabled">
+                <td><ui-select ng-model="record.newBaseMonth" theme="bootstrap" ng-disabled="disabled">
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="choice in ['true','false']" >
                     <div ng-bind-html="choice | highlight: $select.search"></div>
                   </ui-select-choices>
-                </ui-select></td>-->
+                </ui-select></td>
                 <td><ui-select ng-model="record.instructor" theme="bootstrap" ng-disabled="disabled" ng-change="records.fillCert('instructor',record)">
                   <ui-select-match placeholder="Choose...">{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="instructor in records.instructors" >

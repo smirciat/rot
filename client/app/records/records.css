@@ -56,3 +56,19 @@ body {
 .event-yellow {
     color:#D4AF37;
 }
+.exp-history-table th:first-child,
+.exp-history-table td:first-child {
+    white-space: nowrap;
+    font-weight: bold;
+}
+.exp-history-current {
+    background-color: #ffffcc;
+}
+.exp-history-prev1 {
+    background-color: #e8e8e8;
+    color: #444;
+}
+.exp-history-prev2 {
+    background-color: #f4f4f4;
+    color: #777;
+}
