@@ -69,6 +69,14 @@ body {
     color: #444;
 }
 .exp-history-prev2 {
-    background-color: #f4f4f4;
-    color: #777;
+  background-color: #f4f4f4;
+  color: #777;
+}
+.exp-history-restorable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+.exp-history-restorable:hover {
+  background-color: #d6ebff !important;
 }

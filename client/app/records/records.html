@@ -167,6 +167,7 @@
       <h3 style="margin:0;">All Training Dates for Selected Pilot {{records.pilot.displayName}}</h3>
       <button ng-if="records.isApprover()" class="btn btn-info" ng-click="records.showPilotTrainingDates()">Edit Pilot Training Dates</button>
     </div>
+    <p ng-if="records.isApprover()" style="font-size:12px;color:#666;margin-bottom:8px;">Approvers: click a shaded <em>Previous</em> cell to restore that expiration date.</p>
     <table class="table table-condensed table-bordered exp-history-table" style="min-width: 1200px;">
       <thead>
         <tr>
@@ -179,7 +180,9 @@
       <tbody>
         <tr ng-repeat="rowIndex in records.expHistoryRowIndexes() track by rowIndex" ng-class="records.expHistoryRowClass(rowIndex)">
           <th>{{records.expHistoryRowLabel(rowIndex)}}</th>
-          <td ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.hasExpColumn(key)">
+          <td ng-repeat="key in records.appConfig.trainingEventKeys" ng-if="records.hasExpColumn(key)"
+              ng-class="{'exp-history-restorable': records.canRestoreExpHistory(key, rowIndex)}"
+              ng-click="records.restoreExpHistory(key, rowIndex)">
             <span uib-tooltip="{{records.getExpHistoryTooltip(key, rowIndex)}}" tooltip-enable="records.getExpHistoryCell(key, rowIndex)">
               {{ (records.getExpHistoryCell(key, rowIndex) | monthYear) || '—' }}
             </span>

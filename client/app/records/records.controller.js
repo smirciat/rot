@@ -275,7 +275,7 @@ class RecordsComponent {
     if (!this.fullPilot) return false;
     if (!this.fullPilot.trainingExpHistory) this.fullPilot.trainingExpHistory={};
     let history=this.fullPilot.trainingExpHistory[expKey]||[];
-    if (history.length>0&&history[0].exp===entry.exp) return false;
+    if (history.length>0&&history[0].exp===entry.exp&&entry.source!=='restore') return false;
     history.unshift(entry);
     this.fullPilot.trainingExpHistory[expKey]=history.slice(0,3);
     return true;
@@ -373,7 +373,54 @@ class RecordsComponent {
     if (entry.baseMonth) parts.push('base '+entry.baseMonth);
     if (entry.approvedBy) parts.push('by '+entry.approvedBy);
     if (entry.approvedAt) parts.push('at '+new Date(entry.approvedAt).toLocaleString());
+    if (this.canRestoreExpHistory(trainingEventKey,rowIndex)) parts.push('Click to restore');
     return parts.join(' · ');
+  }
+
+  getExpHistoryEntry(trainingEventKey,rowIndex){
+    if (rowIndex===0) return null;
+    const fieldKey=this.getPilotExpFieldKey(trainingEventKey);
+    const history=(this.fullPilot&&this.fullPilot.trainingExpHistory&&this.fullPilot.trainingExpHistory[fieldKey])||[];
+    const historyIndex=this.getExpHistoryHistoryIndex(trainingEventKey,rowIndex);
+    if (historyIndex<0||!history[historyIndex]) return null;
+    return history[historyIndex];
+  }
+
+  canRestoreExpHistory(trainingEventKey,rowIndex){
+    if (!this.isApprover()||rowIndex===0) return false;
+    const expValue=this.getExpHistoryCell(trainingEventKey,rowIndex);
+    if (!expValue) return false;
+    return expValue!==this.getExpDate(trainingEventKey);
+  }
+
+  restoreExpHistory(trainingEventKey,rowIndex){
+    if (!this.canRestoreExpHistory(trainingEventKey,rowIndex)) return;
+    const fieldKey=this.getPilotExpFieldKey(trainingEventKey);
+    const entry=this.getExpHistoryEntry(trainingEventKey,rowIndex);
+    const expValue=entry?entry.exp:this.getExpHistoryCell(trainingEventKey,rowIndex);
+    const current=this.getExpDate(trainingEventKey);
+    const label=trainingEventKey;
+    if (!confirm('Restore '+label+' for '+this.pilot.name+' from '+current+' to '+expValue+'?')) return;
+    const context={
+      source: 'restore',
+      baseMonth: entry&&entry.baseMonth,
+      checkDate: entry&&entry.checkDate,
+      recordId: entry&&entry.recordId,
+      newBaseMonth: entry&&entry.newBaseMonth,
+    };
+    let doc={_id:this.fullPilot._id};
+    doc[fieldKey]=expValue;
+    this.fullPilot[fieldKey]=expValue;
+    this.prependExpHistory(fieldKey,this.buildExpHistoryEntry(expValue,context));
+    doc.trainingExpHistory=this.fullPilot.trainingExpHistory;
+    this.http.post('/api/things/updateFirebase',{collection:'pilots',doc:doc}).then(()=>{
+      let index=this.pilots.map(e=>e._id).indexOf(this.pilot._id);
+      if (index>-1) Object.assign(this.pilots[index],doc);
+      this.toaster.success('Success',label+' restored to '+expValue);
+    }).catch(err=>{
+      console.log(err);
+      this.toaster.error('Error','Failed to restore '+label);
+    });
   }
 
   dumpExpHistory(trainingEventKey){
@@ -405,6 +452,8 @@ class RecordsComponent {
       dump: (key)=>this.dumpExpHistory(key),
       dumpAll: ()=>this.dumpAllExpHistory(),
       pilot: ()=>this.fullPilot&&this.fullPilot.name,
+      restore: (key,rowIndex)=>this.restoreExpHistory(key,rowIndex),
+      canRestore: (key,rowIndex)=>this.canRestoreExpHistory(key,rowIndex),
     };
   }
   
